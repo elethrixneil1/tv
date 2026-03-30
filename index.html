@@ -190,8 +190,6 @@
         .play-btn:hover { background: var(--tv-border); color: var(--tv-accent); }
 
         .volume-container { display: flex; align-items: center; gap: 10px; }
-        #volIcon { cursor: pointer; user-select: none; width: 22px; text-align: center; transition: transform 0.2s; }
-        #volIcon:hover { transform: scale(1.2); }
         .volume-slider { -webkit-appearance: none; width: 100px; height: 4px; background: var(--tv-border); border-radius: 2px; outline: none; }
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
         .volume-slider::-webkit-slider-thumb:hover { background: var(--tv-accent); transform: scale(1.2); }
@@ -331,7 +329,6 @@
                         <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
                     <div class="volume-container">
-                        <span id="volIcon">🔊</span>
                         <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
                     </div>
                 </div>
@@ -370,7 +367,7 @@
         <aside class="chat-sidebar">
             <div class="chat-header">
                 <h2 id="chatTitle" title="Double-click for Admin Access" style="cursor: pointer;">Live Requests</h2>
-                <span class="chat-header-status">● Connected</span>
+                <span class="chat-header-status" id="chatStatusText">● Connecting...</span>
             </div>
             
             <div class="chat-messages" id="chatMessages">
@@ -393,6 +390,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -447,7 +445,6 @@
         const container = document.getElementById('playerContainer');
         const statusText = document.getElementById('statusText');
         const volumeControl = document.getElementById('volumeControl');
-        const volIcon = document.getElementById('volIcon');
         const noSignalOverlay = document.getElementById('noSignalOverlay');
         
         let twitchPlayer;
@@ -494,12 +491,7 @@
         initTwitchPlayer();
 
         // 2. Connect Custom Controls to the Twitch Player
-        let lastVolume = 1;
-
         function updateVolumeUI(vol) {
-            if (vol === 0) volIcon.innerText = "🔇";
-            else if (vol < 0.5) volIcon.innerText = "🔉";
-            else volIcon.innerText = "🔊";
             volumeControl.value = vol;
         }
 
@@ -510,26 +502,6 @@
                 twitchPlayer.setVolume(vol);
             }
             updateVolumeUI(vol);
-            if (vol > 0) lastVolume = vol;
-        });
-
-        volIcon.addEventListener('click', () => {
-            if (!twitchPlayer) return;
-            const currentVol = parseFloat(volumeControl.value);
-            
-            if (currentVol > 0) {
-                // Mute
-                lastVolume = currentVol;
-                twitchPlayer.setMuted(true);
-                twitchPlayer.setVolume(0);
-                updateVolumeUI(0);
-            } else {
-                // Unmute
-                twitchPlayer.setMuted(false);
-                const volToRestore = lastVolume > 0 ? lastVolume : 1;
-                twitchPlayer.setVolume(volToRestore);
-                updateVolumeUI(volToRestore);
-            }
         });
 
         playBtn.addEventListener('click', () => {
@@ -618,6 +590,8 @@
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatTitle = document.getElementById('chatTitle');
+        const chatStatusText = document.getElementById('chatStatusText');
+        
         let currentUser = null;
         let unsubscribeMessages = null;
         let currentMessages = [];
@@ -642,27 +616,49 @@
         if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
             chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Offline</b><br>Database not connected.</div>';
             chatInput.disabled = true; sendBtn.disabled = true;
+            chatStatusText.innerText = "● Disconnected";
+            chatStatusText.style.color = "var(--tv-accent)";
         } else {
             const app = initializeApp(firebaseConfig);
+            
+            // Initialize Firebase Analytics
+            if (firebaseConfig.measurementId) {
+                const analytics = getAnalytics(app);
+            }
+            
             const auth = getAuth(app);
             const db = getFirestore(app);
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'rhythm-101-radio';
 
             const initAuth = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Firebase Auth Error:", error);
+                    chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Authentication Failed</b><br><br><span style="font-size:0.8rem; color:var(--tv-text-muted);">Please make sure "Anonymous Sign-In" is enabled in your Firebase Authentication settings.</span></div>';
+                    chatStatusText.innerText = "● Auth Error";
+                    chatStatusText.style.color = "var(--tv-accent)";
                 }
             };
 
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (user) {
+                    chatStatusText.innerText = "● Connected";
+                    chatStatusText.style.color = "#4caf50";
                     subscribeToMessages();
                     chatInput.disabled = false; sendBtn.disabled = false;
                 } else {
                     if(unsubscribeMessages) unsubscribeMessages();
+                    // Prevent overwriting error messages if authentication fails
+                    if (!chatStatusText.innerText.includes("Error")) {
+                        chatStatusText.innerText = "● Disconnected";
+                        chatStatusText.style.color = "var(--tv-text-muted)";
+                    }
                 }
             });
 
@@ -689,7 +685,9 @@
                     renderMessages(currentMessages);
                 }, (error) => {
                     console.error("Error fetching messages:", error);
-                    chatMessagesEl.innerHTML = '<div style="color:red; text-align:center;">Failed to load chat.</div>';
+                    chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Database Connection Error</b><br><br><span style="font-size:0.8rem; color:var(--tv-text-muted);">Make sure your Firestore Database rules allow read/write access.</span></div>';
+                    chatStatusText.innerText = "● DB Error";
+                    chatStatusText.style.color = "var(--tv-accent)";
                 });
             }
 
@@ -751,12 +749,12 @@
                 const text = chatInput.value.trim();
                 const name = chatName.value.trim();
                 
-                const nameParts = name.split(' ').filter(part => part.length > 0);
-                if (nameParts.length < 2) {
+                // Relaxed name validation to prevent the chat from blocking single names
+                if (name.length < 2) {
                     chatName.style.borderColor = 'var(--tv-accent)';
                     chatName.value = '';
-                    chatName.placeholder = 'First & Last name required!';
-                    alert("Please enter your REAL FULL NAME (First Name and Last Name) to send a live request.");
+                    chatName.placeholder = 'Name required!';
+                    alert("Please enter a display name to send a request.");
                     chatName.focus();
                     return;
                 } else {
