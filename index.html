@@ -3,40 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rhythm 101 TV Broadcast</title>
+    <title>Rhythm 101 Broadcast</title>
     
     <link rel="icon" type="image/jpeg" href="441510909_122141243984227757_7243628959601385331_n (3).jpg">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
-    <!-- Twitch Interactive Player API -->
     <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 
     <style>
         :root {
-            /* TV/Cinematic Theme Colors */
-            --tv-bg: #050505;
-            --tv-panel: #121212;
-            --tv-panel-hover: #1e1e1e;
-            --tv-border: #2a2a2a;
+            /* Modern Streaming Theme Colors */
+            --tv-bg: #0a0a0a;
+            --tv-panel: #141414;
+            --tv-panel-hover: #1f1f1f;
+            --tv-border: #2e2e2e;
             --tv-accent: #e50914; /* Streaming Red */
             --tv-accent-hover: #ff0f1a;
             --tv-text: #ffffff;
             --tv-text-muted: #a0a0a0;
             --tv-blue: #3ea6ff;
-            --glass-bg: rgba(18, 18, 18, 0.85);
-            --lower-third-bg: rgba(0, 0, 0, 0.75);
+            --glass-bg: rgba(20, 20, 20, 0.85);
         }
 
         body.light-mode {
-            --tv-bg: #f0f2f5;
+            --tv-bg: #f9f9f9;
             --tv-panel: #ffffff;
-            --tv-panel-hover: #f9f9f9;
+            --tv-panel-hover: #f0f0f0;
             --tv-border: #e0e0e0;
             --tv-accent: #d32f2f;
-            --tv-text: #050505;
-            --tv-text-muted: #555555;
+            --tv-text: #121212;
+            --tv-text-muted: #666666;
             --glass-bg: rgba(255, 255, 255, 0.9);
-            --lower-third-bg: rgba(255, 255, 255, 0.85);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,27 +61,17 @@
         #preloader.hidden { opacity: 0; visibility: hidden; }
 
         .tv-loader {
-            width: 80px; height: 60px;
+            width: 50px; height: 50px;
             border: 4px solid var(--tv-border);
-            border-radius: 8px;
-            position: relative;
-            display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
+            border-top-color: var(--tv-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
-        .tv-loader::after {
-            content: '';
-            position: absolute; width: 100%; height: 4px;
-            background: var(--tv-accent);
-            animation: scanline 1.5s infinite linear;
-        }
-        @keyframes scanline {
-            0% { top: -10%; }
-            100% { top: 110%; }
-        }
-        .preloader-text { font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; color: var(--tv-text); animation: pulse-text 1.5s infinite; }
-        .offline-message { font-size: 1.2rem; font-weight: 700; color: var(--tv-accent); margin-top: 20px; display: none; }
-        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .preloader-text { font-size: 1.1rem; font-weight: 500; color: var(--tv-text); }
+        .offline-message { font-size: 1.1rem; font-weight: 700; color: var(--tv-accent); margin-top: 20px; display: none; }
 
         /* HEADER */
         header {
@@ -97,15 +84,15 @@
             z-index: 10;
         }
         .brand { display: flex; align-items: center; gap: 15px; }
-        .station-logo { width: 55px; height: 55px; border-radius: 8px; object-fit: contain; background: #ffffff; padding: 4px; }
-        .brand h1 { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
-        .brand span { color: var(--tv-accent); }
+        .station-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: contain; background: #ffffff; padding: 4px; }
+        .brand h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
+        .brand span { color: var(--tv-accent); font-weight: 900; }
         
         .header-controls { display: flex; align-items: center; gap: 20px; }
         .clock-container { display: flex; gap: 15px; text-align: right; }
         .clock { display: flex; flex-direction: column; }
-        .clock-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--tv-text-muted); }
-        .clock-time { font-size: 0.9rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+        .clock-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--tv-text-muted); }
+        .clock-time { font-size: 0.95rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 
         .theme-toggle {
             background: transparent; border: 1px solid var(--tv-border); color: var(--tv-text);
@@ -114,7 +101,7 @@
         }
         .theme-toggle:hover { background: var(--tv-border); }
 
-        /* MAIN TV LAYOUT */
+        /* MAIN LAYOUT */
         .tv-main-layout {
             display: grid;
             grid-template-columns: 1fr 380px;
@@ -124,155 +111,111 @@
             margin: 0 auto;
             width: 100%;
             flex: 1;
-            opacity: 0; transform: translateY(20px);
-            transition: opacity 1s ease, transform 1s ease;
+            opacity: 0; transform: translateY(10px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
         .tv-main-layout.show-content { opacity: 1; transform: translateY(0); }
 
         /* LEFT COLUMN: PLAYER & INFO */
-        .tv-player-section { display: flex; flex-direction: column; gap: 20px; }
+        .tv-player-section { display: flex; flex-direction: column; gap: 15px; }
 
-        /* THE SCREEN */
+        /* CLEAN WEB PLAYER */
         .tv-screen-container {
             width: 100%;
             aspect-ratio: 16 / 9;
             background: #000;
-            border-radius: 12px;
+            border-radius: 8px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 1px solid var(--tv-border);
-            display: flex; align-items: flex-end; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* MistServer Video Container Overlay */
         .tv-video {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            background-color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; background-color: #000;
         }
+        .tv-video video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
 
-        /* Ensures the injected video tag scales perfectly */
-        .tv-video video {
-            width: 100% !important;
-            height: 100% !important;
-            object-fit: cover !important;
-        }
-        
-        /* CRT Scanline Overlay */
-        .tv-screen-container::before {
-            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 4; background-size: 100% 4px, 6px 100%; pointer-events: none;
-        }
-
-        /* Custom No Signal Screen */
+        /* Custom Offline Screen */
         .no-signal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 3;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             opacity: 0; visibility: hidden; transition: opacity 0.5s ease;
         }
-        .no-signal-overlay.active {
-            opacity: 1; visibility: visible;
+        .no-signal-overlay.active { opacity: 1; visibility: visible; }
+        .no-signal-overlay h2 { 
+            color: var(--tv-accent); font-size: 2.5rem; letter-spacing: 4px; margin-bottom: 10px; font-weight: 700;
+            animation: pulse-text 2s infinite; 
         }
-        .no-signal-overlay h2 {
-            color: var(--tv-accent); font-size: 2.5rem; letter-spacing: 4px; margin-bottom: 10px;
-            animation: pulse-text 2s infinite;
-        }
-        .no-signal-overlay p {
-            color: var(--tv-text-muted); font-size: 1.1rem;
-        }
+        .no-signal-overlay p { color: var(--tv-text-muted); font-size: 1.1rem; }
+        
+        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
         /* LIVE Badge */
         .live-badge {
-            position: absolute; top: 20px; left: 20px; z-index: 5;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
-            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); color: white;
+            position: absolute; top: 15px; left: 15px; z-index: 5;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 6px; color: white; border: 1px solid rgba(255,255,255,0.1);
         }
-        .live-dot { width: 8px; height: 8px; background-color: #555; border-radius: 50%; }
-        .playing .live-dot { background-color: var(--tv-accent); box-shadow: 0 0 10px var(--tv-accent); animation: blink 2s infinite; }
+        .live-dot { width: 6px; height: 6px; background-color: #555; border-radius: 50%; }
+        .playing .live-dot { background-color: var(--tv-accent); box-shadow: 0 0 8px var(--tv-accent); animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* Fullscreen API Styles */
-        .tv-player-section:fullscreen {
-            background: #000;
-            padding: 0;
-            justify-content: center;
-            gap: 0;
-        }
-        .tv-player-section:fullscreen .tv-screen-container {
-            border-radius: 0;
-            border: none;
-            box-shadow: none;
-            height: 100vh;
-            max-height: calc(100vh - 82px);
-        }
-        .tv-player-section:fullscreen .controls-bar {
-            border-radius: 0;
-            border: none;
-        }
-        .tv-player-section:fullscreen .info-grid {
-            display: none;
-        }
+        /* Fullscreen Styles */
+        .tv-player-section:fullscreen { background: #000; padding: 0; justify-content: center; gap: 0; }
+        .tv-player-section:fullscreen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: calc(100vh - 70px); }
+        .tv-player-section:fullscreen .controls-bar { border-radius: 0; border: none; border-top: 1px solid #222; }
+        .tv-player-section:fullscreen .info-grid { display: none; }
 
         /* CONTROLS BAR */
         .controls-bar {
-            background: var(--tv-panel); border-radius: 12px; padding: 15px 25px;
+            background: var(--tv-panel); border-radius: 8px; padding: 12px 20px;
             display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--tv-border);
         }
         .controls-left { display: flex; align-items: center; gap: 20px; }
         
         .play-btn {
-            background: var(--tv-accent); border: none; width: 50px; height: 50px; border-radius: 50%;
-            color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+            background: transparent; border: none; width: 40px; height: 40px; border-radius: 50%;
+            color: var(--tv-text); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
         }
-        .play-btn:hover { background: var(--tv-accent-hover); transform: scale(1.05); }
-        .play-btn:active { transform: scale(0.95); }
+        .play-btn:hover { background: var(--tv-border); color: var(--tv-accent); }
 
         .volume-container { display: flex; align-items: center; gap: 10px; }
-        .volume-slider { -webkit-appearance: none; width: 120px; height: 6px; background: var(--tv-border); border-radius: 5px; outline: none; }
-        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
+        .volume-slider { -webkit-appearance: none; width: 100px; height: 4px; background: var(--tv-border); border-radius: 2px; outline: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
         .volume-slider::-webkit-slider-thumb:hover { background: var(--tv-accent); transform: scale(1.2); }
         
         .controls-right { display: flex; align-items: center; gap: 15px; }
-        #statusText { font-size: 0.9rem; font-weight: 500; color: var(--tv-text-muted); }
+        #statusText { font-size: 0.85rem; font-weight: 500; color: var(--tv-text-muted); }
 
         /* INFO & ABOUT CARDS */
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card-panel { background: var(--tv-panel); border-radius: 12px; padding: 25px; border: 1px solid var(--tv-border); }
-        .card-panel h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: var(--tv-text); }
-        .card-panel h2::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--tv-accent); border-radius: 2px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
+        .card-panel { background: var(--tv-panel); border-radius: 8px; padding: 20px; border: 1px solid var(--tv-border); }
+        .card-panel h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--tv-text); }
         
-        .station-desc { font-size: 0.95rem; line-height: 1.6; color: var(--tv-text-muted); text-align: justify; margin-bottom: 15px; }
+        .station-desc { font-size: 0.95rem; line-height: 1.6; color: var(--tv-text-muted); margin-bottom: 15px; }
         .contact-email a { color: var(--tv-blue); text-decoration: none; font-weight: 500; }
         .contact-email a:hover { text-decoration: underline; }
 
-        .fb-wrapper { width: 100%; border-radius: 8px; overflow: hidden; background: #fff; min-height: 300px; }
+        .fb-wrapper { width: 100%; border-radius: 6px; overflow: hidden; background: #fff; min-height: 300px; }
 
         /* RIGHT COLUMN: LIVE CHAT */
         .chat-sidebar {
-            background: var(--tv-panel); border-radius: 12px; border: 1px solid var(--tv-border);
-            display: flex; flex-direction: column; height: calc(100vh - 120px); position: sticky; top: 90px;
+            background: var(--tv-panel); border-radius: 8px; border: 1px solid var(--tv-border);
+            display: flex; flex-direction: column; height: calc(100vh - 110px); position: sticky; top: 90px;
         }
-        .chat-header { padding: 15px 20px; border-bottom: 1px solid var(--tv-border); display: flex; justify-content: space-between; align-items: center; }
-        .chat-header h2 { font-size: 1.1rem; font-weight: 700; }
-        .chat-header-status { font-size: 0.75rem; color: #4caf50; background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 4px; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--tv-border); display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { font-size: 1rem; font-weight: 700; }
+        .chat-header-status { font-size: 0.7rem; color: #4caf50; background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 4px; }
 
-        .chat-messages {
-            flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px;
-        }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         .chat-message { display: flex; flex-direction: column; gap: 4px; word-wrap: break-word; animation: fadeIn 0.3s ease; }
-        .chat-sender-name { font-size: 0.8rem; font-weight: 700; color: var(--tv-text-muted); }
+        .chat-sender-name { font-size: 0.75rem; font-weight: 700; color: var(--tv-text-muted); }
         .self .chat-sender-name { color: var(--tv-accent); text-align: right; }
         
         .chat-bubble {
@@ -284,25 +227,25 @@
         .chat-meta { font-size: 0.65rem; color: var(--tv-text-muted); display: flex; gap: 10px; align-items: center; margin-top: 2px; }
         .self .chat-meta { justify-content: flex-end; }
 
-        .chat-input-area { padding: 15px 20px; border-top: 1px solid var(--tv-border); display: flex; flex-direction: column; gap: 10px; background: var(--tv-panel); border-radius: 0 0 12px 12px; }
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--tv-border); display: flex; flex-direction: column; gap: 10px; background: var(--tv-panel); border-radius: 0 0 8px 8px; }
         .chat-input {
-            width: 100%; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--tv-border);
+            width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid var(--tv-border);
             background: var(--tv-bg); color: var(--tv-text); font-family: inherit; font-size: 0.9rem; outline: none;
         }
         .chat-input:focus { border-color: var(--tv-accent); }
-        .input-row { display: flex; gap: 10px; }
+        .input-row { display: flex; gap: 8px; }
         
         .send-btn {
-            background: var(--tv-accent); color: white; border: none; padding: 0 20px; border-radius: 6px;
+            background: var(--tv-accent); color: white; border: none; padding: 0 15px; border-radius: 4px;
             font-weight: 600; cursor: pointer; transition: 0.2s;
         }
         .send-btn:hover { background: var(--tv-accent-hover); }
         .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Scrollbars */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--tv-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--tv-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--tv-border); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--tv-text-muted); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -316,30 +259,24 @@
         @media (max-width: 768px) {
             header { padding: 10px 15px; flex-wrap: wrap; gap: 10px; }
             .clock-container { display: none; }
-            .tv-screen-container { border-radius: 8px; }
+            .tv-screen-container { border-radius: 6px; }
             .controls-bar { flex-direction: column; gap: 15px; align-items: flex-start; }
             .controls-left { width: 100%; justify-content: space-between; }
-            .lower-thirds { padding: 10px 15px; flex-direction: column; align-items: flex-start; gap: 5px; }
-            .now-playing-label { font-size: 0.7rem; }
-            .now-playing-text { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- PRELOADER -->
     <div id="preloader">
         <div class="tv-loader"></div>
-        <div class="preloader-text" id="preloaderText">INITIALIZING BROADCAST...</div>
-        <div class="offline-message" id="offlineMessage">⚠️ NO SIGNAL DETECTED</div>
+        <div class="preloader-text" id="preloaderText">Loading Player...</div>
+        <div class="offline-message" id="offlineMessage">Network Offline</div>
     </div>
 
-    <!-- HEADER -->
     <header>
         <div class="brand">
-            <!-- Fixed Logo Image -->
             <img src="441510909_122141243984227757_7243628959601385331_n (3).jpg" alt="Rhythm 101 Logo" class="station-logo" onerror="this.style.display='none'">
-            <h1>Rhythm 101 <span>TV</span></h1>
+            <h1>Rhythm 101 <span>Live</span></h1>
         </div>
         <div class="header-controls">
             <div class="clock-container">
@@ -348,23 +285,17 @@
                     <span class="clock-time" id="localTime">--:--:--</span>
                 </div>
                 <div class="clock" style="border-left: 1px solid var(--tv-border); padding-left: 15px;">
-                    <span class="clock-label">Philippines (PST)</span>
+                    <span class="clock-label">Philippines</span>
                     <span class="clock-time" id="phTime">--:--:--</span>
                 </div>
             </div>
             <button id="themeToggle" class="theme-toggle" title="Toggle Theme">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
             </button>
         </div>
     </header>
 
-    <!-- MAIN GRID -->
-    <main class="tv-main-layout" id="mainAppContent">
-        
-        <!-- LEFT COLUMN: TV PLAYER -->
-        <div class="tv-player-section" id="playerContainer">
-            
-            <!-- TV SCREEN -->
+            <!-- WEB SCREEN -->
             <div class="tv-screen-container">
                 <div class="live-badge">
                     <div class="live-dot"></div>
@@ -374,7 +305,7 @@
                 <!-- Twitch Video Container -->
                 <div id="videoStream" class="tv-video"></div>
 
-                <!-- Custom No Signal Overlay -->
+                <!-- Standard Offline Screen -->
                 <div id="noSignalOverlay" class="no-signal-overlay active">
                     <h2>NO SIGNAL</h2>
                     <p>Broadcast is currently offline.</p>
@@ -385,8 +316,8 @@
             <div class="controls-bar">
                 <div class="controls-left">
                     <button class="play-btn" id="playBtn">
-                        <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="pauseIcon" width="24" height="24" viewBox="0 0 24 24" fill="white" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
                     <div class="volume-container">
                         <span id="volIcon">🔊</span>
@@ -394,21 +325,20 @@
                     </div>
                 </div>
                 <div class="controls-right">
-                    <div id="statusText">Ready to Broadcast</div>
+                    <div id="statusText">Ready</div>
                     <button id="fullscreenBtn" class="theme-toggle" title="Full Screen" style="border: none;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
                         </svg>
                     </button>
                 </div>
             </div>
 
-            <!-- INFO CARDS (Grid below player) -->
             <div class="info-grid">
                 <div class="card-panel">
-                    <h2>About The TV Station</h2>
+                    <h2>About The Station</h2>
                     <p class="station-desc">
-                        Welcome to Rhythm 101 TV, the premier online visual radio station broadcasting live from the beautiful Bicol Region in the Philippines. We are your number one source for essential music videos, live entertainment, and the latest hits. Tune in, drop a request in the live chat, and watch the beat!
+                        Welcome to Rhythm 101, the premier online visual radio station broadcasting live from the beautiful Bicol Region in the Philippines. We are your number one source for essential music videos, live entertainment, and the latest hits. Tune in and drop a request in the live chat!
                     </p>
                     <div class="contact-email">
                         Business & Inquiries: <a href="mailto:rhythm101fm@gmail.com">rhythm101fm@gmail.com</a>
@@ -423,7 +353,6 @@
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: LIVE CHAT -->
         <aside class="chat-sidebar">
             <div class="chat-header">
                 <h2 id="chatTitle" title="Double-click for Admin Access" style="cursor: pointer;">Live Requests</h2>
@@ -431,7 +360,7 @@
             </div>
             
             <div class="chat-messages" id="chatMessages">
-                <div style="opacity: 0.5; text-align: center; font-size: 0.8rem; margin: auto;">Connecting to broadcast chat...</div>
+                <div style="opacity: 0.5; text-align: center; font-size: 0.8rem; margin: auto;">Connecting to chat...</div>
             </div>
 
             <div class="chat-input-area">
@@ -448,7 +377,6 @@
 
     </main>
 
-    <!-- MAIN SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -460,7 +388,6 @@
         const TWITCH_CHANNEL = "neilelethrix"; 
         const YOUR_WEBSITE_DOMAIN = "tv-wine-delta.vercel.app"; 
         // =========================================================================
-
 
         // --- PRELOADER AND INTERNET LOGIC ---
         const preloader = document.getElementById('preloader');
@@ -476,14 +403,14 @@
                 preloaderText.style.display = 'none';
                 offlineMessage.style.display = 'block';
             } else {
-                loaderAnim.style.display = 'flex';
+                loaderAnim.style.display = 'block';
                 preloaderText.style.display = 'block';
                 offlineMessage.style.display = 'none';
                 if (isWindowLoaded) {
                     setTimeout(() => {
                         preloader.classList.add('hidden');
                         mainContent.classList.add('show-content'); 
-                    }, 1000); 
+                    }, 800); 
                 }
             }
         }
@@ -517,41 +444,39 @@
                 height: "100%",
                 channel: TWITCH_CHANNEL,
                 parent: [YOUR_WEBSITE_DOMAIN, "localhost", "127.0.0.1"],
-                controls: false // Restored back to false for the cinematic TV look
+                controls: false
             };
             
             twitchPlayer = new Twitch.Player("videoStream", options);
 
             twitchPlayer.addEventListener(Twitch.Player.READY, () => {
                 twitchPlayer.setVolume(1.0);
-                statusText.innerText = "Ready to Broadcast";
+                statusText.innerText = "Ready to Play";
             });
 
-            // NEW: Instantly hide the "NO SIGNAL" screen the second Twitch detects your live feed!
             twitchPlayer.addEventListener(Twitch.Player.ONLINE, () => {
-                statusText.innerText = "Signal Detected! Press Play.";
+                statusText.innerText = "Stream is Live! Press Play.";
                 noSignalOverlay.classList.remove('active'); 
             });
 
             twitchPlayer.addEventListener(Twitch.Player.PLAYING, () => {
                 playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
-                container.classList.add('playing'); statusText.innerText = "Broadcasting Live";
-                noSignalOverlay.classList.remove('active'); // Hide custom offline screen
+                container.classList.add('playing'); statusText.innerText = "Playing Live";
+                noSignalOverlay.classList.remove('active');
             });
 
             twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
                 playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
-                container.classList.remove('playing'); statusText.innerText = "Broadcast Paused";
+                container.classList.remove('playing'); statusText.innerText = "Paused";
             });
             
             twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
-                statusText.innerText = "Station Offline"; container.classList.remove('playing');
+                statusText.innerText = "Offline"; container.classList.remove('playing');
                 playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
-                noSignalOverlay.classList.add('active'); // Show custom offline screen
+                noSignalOverlay.classList.add('active');
             });
         }
         
-        // Start embedding the player immediately
         initTwitchPlayer();
 
         // 2. Connect Custom Controls to the Twitch Player
@@ -566,13 +491,12 @@
 
         playBtn.addEventListener('click', () => {
             if (!twitchPlayer) {
-                alert("Stream is still connecting. Please wait.");
+                alert("Player is loading. Please wait.");
                 return;
             }
 
-            // Reliable toggle: Uses the UI container state rather than the sometimes-delayed Twitch API state
             if (!container.classList.contains('playing')) {
-                statusText.innerText = "Connecting to TV Signal...";
+                statusText.innerText = "Connecting...";
                 twitchPlayer.play();
             } else {
                 twitchPlayer.pause();
@@ -587,17 +511,17 @@
             if (!document.fullscreenElement) {
                 if (playerSection.requestFullscreen) {
                     playerSection.requestFullscreen();
-                } else if (playerSection.webkitRequestFullscreen) { /* Safari */
+                } else if (playerSection.webkitRequestFullscreen) {
                     playerSection.webkitRequestFullscreen();
-                } else if (playerSection.msRequestFullscreen) { /* IE11 */
+                } else if (playerSection.msRequestFullscreen) {
                     playerSection.msRequestFullscreen();
                 }
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { /* Safari */
+                } else if (document.webkitExitFullscreen) {
                     document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE11 */
+                } else if (document.msExitFullscreen) {
                     document.msExitFullscreen();
                 }
             }
