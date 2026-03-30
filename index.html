@@ -517,7 +517,7 @@
                 height: "100%",
                 channel: TWITCH_CHANNEL,
                 parent: [YOUR_WEBSITE_DOMAIN, "localhost", "127.0.0.1"],
-                controls: false // Hides Twitch UI so your custom Red TV buttons work instead!
+                controls: false // Restored back to false for the cinematic TV look
             };
             
             twitchPlayer = new Twitch.Player("videoStream", options);
@@ -525,6 +525,12 @@
             twitchPlayer.addEventListener(Twitch.Player.READY, () => {
                 twitchPlayer.setVolume(1.0);
                 statusText.innerText = "Ready to Broadcast";
+            });
+
+            // NEW: Instantly hide the "NO SIGNAL" screen the second Twitch detects your live feed!
+            twitchPlayer.addEventListener(Twitch.Player.ONLINE, () => {
+                statusText.innerText = "Signal Detected! Press Play.";
+                noSignalOverlay.classList.remove('active'); 
             });
 
             twitchPlayer.addEventListener(Twitch.Player.PLAYING, () => {
