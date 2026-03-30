@@ -564,7 +564,8 @@
                 return;
             }
 
-            if (twitchPlayer.isPaused()) {
+            // Reliable toggle: Uses the UI container state rather than the sometimes-delayed Twitch API state
+            if (!container.classList.contains('playing')) {
                 statusText.innerText = "Connecting to TV Signal...";
                 twitchPlayer.play();
             } else {
