@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rhythm 101 TV</title>
+    <title>Rhythm 101 Broadcast</title>
     
     <link rel="icon" type="image/jpeg" href="441510909_122141243984227757_7243628959601385331_n (3).jpg">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -190,6 +190,8 @@
         .play-btn:hover { background: var(--tv-border); color: var(--tv-accent); }
 
         .volume-container { display: flex; align-items: center; gap: 10px; }
+        #volIcon { cursor: pointer; user-select: none; width: 22px; text-align: center; transition: transform 0.2s; }
+        #volIcon:hover { transform: scale(1.2); }
         .volume-slider { -webkit-appearance: none; width: 100px; height: 4px; background: var(--tv-border); border-radius: 2px; outline: none; }
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
         .volume-slider::-webkit-slider-thumb:hover { background: var(--tv-accent); transform: scale(1.2); }
@@ -492,13 +494,42 @@
         initTwitchPlayer();
 
         // 2. Connect Custom Controls to the Twitch Player
-        volumeControl.addEventListener('input', (e) => {
-            const vol = parseFloat(e.target.value);
-            if (twitchPlayer) twitchPlayer.setVolume(vol);
-            
+        let lastVolume = 1;
+
+        function updateVolumeUI(vol) {
             if (vol === 0) volIcon.innerText = "🔇";
             else if (vol < 0.5) volIcon.innerText = "🔉";
             else volIcon.innerText = "🔊";
+            volumeControl.value = vol;
+        }
+
+        volumeControl.addEventListener('input', (e) => {
+            const vol = parseFloat(e.target.value);
+            if (twitchPlayer) {
+                twitchPlayer.setMuted(vol === 0);
+                twitchPlayer.setVolume(vol);
+            }
+            updateVolumeUI(vol);
+            if (vol > 0) lastVolume = vol;
+        });
+
+        volIcon.addEventListener('click', () => {
+            if (!twitchPlayer) return;
+            const currentVol = parseFloat(volumeControl.value);
+            
+            if (currentVol > 0) {
+                // Mute
+                lastVolume = currentVol;
+                twitchPlayer.setMuted(true);
+                twitchPlayer.setVolume(0);
+                updateVolumeUI(0);
+            } else {
+                // Unmute
+                twitchPlayer.setMuted(false);
+                const volToRestore = lastVolume > 0 ? lastVolume : 1;
+                twitchPlayer.setVolume(volToRestore);
+                updateVolumeUI(volToRestore);
+            }
         });
 
         playBtn.addEventListener('click', () => {
@@ -569,14 +600,15 @@
         setInterval(updateClocks, 1000); updateClocks();
 
         // --- FIREBASE CHATBOX LOGIC ---
+        // ⚠️ PASTE YOUR NEW FIREBASE CONFIGURATION BELOW ⚠️
         const myFirebaseConfig = {
-            apiKey: "AIzaSyDDjVL_LMCtFa2XGUJWS05XNyBHKTbKEaM",
-            authDomain: "rhythm-101-broadcast.firebaseapp.com",
-            projectId: "rhythm-101-broadcast",
-            storageBucket: "rhythm-101-broadcast.firebasestorage.app",
-            messagingSenderId: "143958198688",
-            appId: "1:143958198688:web:89216f28c3b151dec0fcc5",
-            measurementId: "G-0EXPY7CV3C"
+            apiKey: "AIzaSyDexzokLhiM4TU1TBB8uHVg-jFYCxcBRsE",
+            authDomain: "rhythm-101-tv.firebaseapp.com",
+            projectId: "rhythm-101-tv",
+            storageBucket: "rhythm-101-tv.firebasestorage.app",
+            messagingSenderId: "80313570040",
+            appId: "1:80313570040:web:0b822ecac5055d070e610d",
+            measurementId: "G-Z72HLBZYEM"
         };
 
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
