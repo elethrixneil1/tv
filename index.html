@@ -190,8 +190,6 @@
         .play-btn:hover { background: var(--tv-border); color: var(--tv-accent); }
 
         .volume-container { display: flex; align-items: center; gap: 10px; }
-        #volIcon { cursor: pointer; user-select: none; width: 22px; text-align: center; transition: transform 0.2s; }
-        #volIcon:hover { transform: scale(1.2); }
         .volume-slider { -webkit-appearance: none; width: 100px; height: 4px; background: var(--tv-border); border-radius: 2px; outline: none; }
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
         .volume-slider::-webkit-slider-thumb:hover { background: var(--tv-accent); transform: scale(1.2); }
@@ -331,7 +329,6 @@
                         <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
                     <div class="volume-container">
-                        <span id="volIcon">🔊</span>
                         <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
                     </div>
                 </div>
@@ -447,7 +444,6 @@
         const container = document.getElementById('playerContainer');
         const statusText = document.getElementById('statusText');
         const volumeControl = document.getElementById('volumeControl');
-        const volIcon = document.getElementById('volIcon');
         const noSignalOverlay = document.getElementById('noSignalOverlay');
         
         let twitchPlayer;
@@ -494,12 +490,7 @@
         initTwitchPlayer();
 
         // 2. Connect Custom Controls to the Twitch Player
-        let lastVolume = 1;
-
         function updateVolumeUI(vol) {
-            if (vol === 0) volIcon.innerText = "🔇";
-            else if (vol < 0.5) volIcon.innerText = "🔉";
-            else volIcon.innerText = "🔊";
             volumeControl.value = vol;
         }
 
@@ -510,26 +501,6 @@
                 twitchPlayer.setVolume(vol);
             }
             updateVolumeUI(vol);
-            if (vol > 0) lastVolume = vol;
-        });
-
-        volIcon.addEventListener('click', () => {
-            if (!twitchPlayer) return;
-            const currentVol = parseFloat(volumeControl.value);
-            
-            if (currentVol > 0) {
-                // Mute
-                lastVolume = currentVol;
-                twitchPlayer.setMuted(true);
-                twitchPlayer.setVolume(0);
-                updateVolumeUI(0);
-            } else {
-                // Unmute
-                twitchPlayer.setMuted(false);
-                const volToRestore = lastVolume > 0 ? lastVolume : 1;
-                twitchPlayer.setVolume(volToRestore);
-                updateVolumeUI(volToRestore);
-            }
         });
 
         playBtn.addEventListener('click', () => {
