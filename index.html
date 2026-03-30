@@ -8,6 +8,9 @@
     <link rel="icon" type="image/jpeg" href="441510909_122141243984227757_7243628959601385331_n (3).jpg">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     
+    <!-- Twitch Interactive Player API -->
+    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+
     <style>
         :root {
             /* TV/Cinematic Theme Colors */
@@ -421,14 +424,14 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🌐 MISTSERVER INTERNET CONFIGURATION 🌐
+        // 🌐 PERMANENT INTERNET TV CONFIGURATION (TWITCH ENGINE) 🌐
         // =========================================================================
-        // Change the URL below from "http://localhost:8080" to your Public IP Address
-        // or your Ngrok/Cloudflare Tunnel URL to broadcast to the entire internet!
-        // Example: const MISTSERVER_HOST = "https://1234-abcd.ngrok-free.app";
-        // Example: const MISTSERVER_HOST = "http://203.0.113.50:8080";
-        // =========================================================================
-        const MISTSERVER_HOST = "https://lozenged-delsie-pretendedly.ngrok-free.dev";
+        // 1. Create a free Twitch.tv account for your station.
+        // 2. Put your exact Twitch username below (e.g., "rhythm101tv"):
+        const TWITCH_CHANNEL = "neilelethrix"; 
+        
+        // 3. Put your Vercel URL below (without https://) so the player is allowed to load:
+        const YOUR_WEBSITE_DOMAIN = "tv-wine-delta.vercel.app"; 
         // =========================================================================
 
 
@@ -469,7 +472,7 @@
             localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
         });
 
-        // --- MISTSERVER NATIVE PLAYER INTEGRATION ---
+        // --- TWITCH NATIVE PLAYER INTEGRATION ---
         const playBtn = document.getElementById('playBtn');
         const playIcon = document.getElementById('playIcon');
         const pauseIcon = document.getElementById('pauseIcon');
@@ -477,67 +480,47 @@
         const statusText = document.getElementById('statusText');
         const volumeControl = document.getElementById('volumeControl');
         const volIcon = document.getElementById('volIcon');
-        let playPromise; 
+        
+        let twitchPlayer;
 
-        // 1. Inject MistServer's official player.js dynamically using our configured Internet Host
-        function initMistServerPlayer() {
-            var a = function() {
-                try {
-                    // Check if MistPlayer loaded successfully instead of throwing a generic error
-                    if (typeof mistPlay !== "undefined") {
-                        // Initialize MistPlayer on our #videoStream container
-                        // NOTE: Changed back to "beta" because your screenshot showed "beta" stream working perfectly!
-                        // If you ever want to use "zstream", just change "beta" to "zstream" below when OBS is streaming to it.
-                        mistPlay("beta", {
-                            target: document.getElementById("videoStream"),
-                            autoplay: false,
-                            controls: false, // Hide default controls to use our custom buttons
-                            loop: true,
-                            host: MISTSERVER_HOST // Point the internal MistPlayer engine to your public URL
-                        });
-                    } else {
-                        throw new Error("MistServer script blocked or invalid.");
-                    }
-                } catch (err) {
-                    statusText.innerText = "Error: Stream Blocked by Ngrok";
-                    container.classList.remove('playing');
-                    if (MISTSERVER_HOST.includes("ngrok-free.dev")) {
-                        alert("NGROK SECURITY BLOCK DETECTED:\n\nBecause you are using a free Ngrok link, Ngrok is intercepting the video script with a warning page.\n\nTo fix this:\n1. Open a new tab and go to: " + MISTSERVER_HOST + "\n2. Click the blue 'Visit Site' button.\n3. Come back here and refresh the page.");
-                    }
-                }
+        function initTwitchPlayer() {
+            var options = {
+                width: "100%",
+                height: "100%",
+                channel: TWITCH_CHANNEL,
+                parent: [YOUR_WEBSITE_DOMAIN, "localhost", "127.0.0.1"],
+                controls: false // Hides Twitch UI so your custom Red TV buttons work instead!
             };
             
-            if (!window.mistplayers) {
-                var p = document.createElement("script");
-                
-                // Load the player.js file directly from the configured Host
-                p.src = MISTSERVER_HOST + "/player.js";
-                
-                // NGROK FIX: Detect if Ngrok's free tier is blocking the script with a warning page
-                p.onerror = function() {
-                    statusText.innerText = "Error: Stream Blocked by Ngrok";
-                    container.classList.remove('playing');
-                    if (MISTSERVER_HOST.includes("ngrok-free.dev")) {
-                        alert("NGROK SECURITY BLOCK DETECTED:\n\nBecause you are using a free Ngrok link, Ngrok is blocking the video script.\n\nTo fix this:\n1. Open a new tab and go to: " + MISTSERVER_HOST + "\n2. Click the blue 'Visit Site' button.\n3. Come back here and refresh the page.");
-                    }
-                };
+            twitchPlayer = new Twitch.Player("videoStream", options);
 
-                document.head.appendChild(p);
-                p.onload = a;
-            } else {
-                a();
-            }
+            twitchPlayer.addEventListener(Twitch.Player.READY, () => {
+                twitchPlayer.setVolume(1.0);
+                statusText.innerText = "Ready to Broadcast";
+            });
+
+            twitchPlayer.addEventListener(Twitch.Player.PLAYING, () => {
+                playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
+                container.classList.add('playing'); statusText.innerText = "Broadcasting Live";
+            });
+
+            twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
+                playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+                container.classList.remove('playing'); statusText.innerText = "Broadcast Paused";
+            });
+            
+            twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
+                statusText.innerText = "Station Offline"; container.classList.remove('playing');
+            });
         }
         
-        // Start embedding the MistServer player immediately
-        initMistServerPlayer();
+        // Start embedding the player immediately
+        initTwitchPlayer();
 
-        // 2. Connect Custom Controls to the injected MistServer Video Tag
+        // 2. Connect Custom Controls to the Twitch Player
         volumeControl.addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
-            // Mistplayer injects a standard video tag we can control
-            const video = document.querySelector('#videoStream video');
-            if(video) video.volume = vol;
+            if (twitchPlayer) twitchPlayer.setVolume(vol);
             
             if (vol === 0) volIcon.innerText = "🔇";
             else if (vol < 0.5) volIcon.innerText = "🔉";
@@ -545,40 +528,16 @@
         });
 
         playBtn.addEventListener('click', () => {
-            const video = document.querySelector('#videoStream video');
-            
-            if (!video) {
-                alert("Stream is still connecting to MistServer. Please wait a second.");
+            if (!twitchPlayer) {
+                alert("Stream is still connecting. Please wait.");
                 return;
             }
 
-            if (video.paused) {
+            if (twitchPlayer.isPaused()) {
                 statusText.innerText = "Connecting to TV Signal...";
-                playPromise = video.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
-                        container.classList.add('playing'); statusText.innerText = "Broadcasting Live";
-                    }).catch(err => {
-                        if (err.name !== 'AbortError') {
-                            statusText.innerText = "Signal Lost / Blocked";
-                            console.error("Video Play Error:", err);
-                        }
-                    });
-                }
+                twitchPlayer.play();
             } else {
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => {
-                        video.pause();
-                        playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
-                        container.classList.remove('playing'); statusText.innerText = "Broadcast Paused";
-                    }).catch(err => {});
-                } else {
-                    video.pause();
-                    playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
-                    container.classList.remove('playing'); statusText.innerText = "Broadcast Paused";
-                }
+                twitchPlayer.pause();
             }
         });
 
