@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm 101 TV Broadcast</title>
+    
+    <link rel="icon" type="image/jpeg" href="441510909_122141243984227757_7243628959601385331_n (3).jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* TV/Cinematic Theme Colors */
+            --tv-bg: #050505;
+            --tv-panel: #121212;
+            --tv-panel-hover: #1e1e1e;
+            --tv-border: #2a2a2a;
+            --tv-accent: #e50914; /* Streaming Red */
+            --tv-accent-hover: #ff0f1a;
+            --tv-text: #ffffff;
+            --tv-text-muted: #a0a0a0;
+            --tv-blue: #3ea6ff;
+            --glass-bg: rgba(18, 18, 18, 0.85);
+            --lower-third-bg: rgba(0, 0, 0, 0.75);
+        }
+
+        body.light-mode {
+            --tv-bg: #f0f2f5;
+            --tv-panel: #ffffff;
+            --tv-panel-hover: #f9f9f9;
+            --tv-border: #e0e0e0;
+            --tv-accent: #d32f2f;
+            --tv-text: #050505;
+            --tv-text-muted: #555555;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --lower-third-bg: rgba(255, 255, 255, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--tv-bg);
+            color: var(--tv-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* --- PRELOADER ANIMATION STYLES --- */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--tv-bg);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #preloader.hidden { opacity: 0; visibility: hidden; }
+
+        .tv-loader {
+            width: 80px; height: 60px;
+            border: 4px solid var(--tv-border);
+            border-radius: 8px;
+            position: relative;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .tv-loader::after {
+            content: '';
+            position: absolute; width: 100%; height: 4px;
+            background: var(--tv-accent);
+            animation: scanline 1.5s infinite linear;
+        }
+        @keyframes scanline {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+        .preloader-text { font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; color: var(--tv-text); animation: pulse-text 1.5s infinite; }
+        .offline-message { font-size: 1.2rem; font-weight: 700; color: var(--tv-accent); margin-top: 20px; display: none; }
+        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--tv-panel);
+            border-bottom: 1px solid var(--tv-border);
+            z-index: 10;
+        }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .station-logo { width: 55px; height: 55px; border-radius: 8px; object-fit: contain; background: #ffffff; padding: 4px; }
+        .brand h1 { font-size: 1.5rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+        .brand span { color: var(--tv-accent); }
+        
+        .header-controls { display: flex; align-items: center; gap: 20px; }
+        .clock-container { display: flex; gap: 15px; text-align: right; }
+        .clock { display: flex; flex-direction: column; }
+        .clock-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--tv-text-muted); }
+        .clock-time { font-size: 0.9rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--tv-border); color: var(--tv-text);
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .theme-toggle:hover { background: var(--tv-border); }
+
+        /* MAIN TV LAYOUT */
+        .tv-main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            padding: 20px 30px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+            opacity: 0; transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+        .tv-main-layout.show-content { opacity: 1; transform: translateY(0); }
+
+        /* LEFT COLUMN: PLAYER & INFO */
+        .tv-player-section { display: flex; flex-direction: column; gap: 20px; }
+
+        /* THE SCREEN */
+        .tv-screen-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--tv-border);
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+
+        /* MistServer Video Container Overlay */
+        .tv-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Ensures the injected video tag scales perfectly */
+        .tv-video video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        
+        /* CRT Scanline Overlay */
+        .tv-screen-container::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2; background-size: 100% 4px, 6px 100%; pointer-events: none;
+        }
+
+        /* LIVE Badge */
+        .live-badge {
+            position: absolute; top: 20px; left: 20px; z-index: 5;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1); color: white;
+        }
+        .live-dot { width: 8px; height: 8px; background-color: #555; border-radius: 50%; }
+        .playing .live-dot { background-color: var(--tv-accent); box-shadow: 0 0 10px var(--tv-accent); animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Lower Thirds */
+        .lower-thirds {
+            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
+            background: var(--lower-third-bg); backdrop-filter: blur(10px);
+            border-top: 2px solid var(--tv-accent);
+            display: flex; align-items: center; padding: 15px 25px; gap: 20px;
+        }
+        .now-playing-label {
+            font-size: 0.8rem; font-weight: 900; text-transform: uppercase; color: var(--tv-accent);
+            white-space: nowrap; background: var(--tv-bg); padding: 5px 10px; border-radius: 4px;
+        }
+        .marquee-wrapper { flex: 1; overflow: hidden; white-space: nowrap; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }
+        .now-playing-text { display: inline-block; font-size: 1.2rem; font-weight: 500; padding-left: 100%; animation: marquee 20s linear infinite; color: var(--tv-text); }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+        /* CONTROLS BAR */
+        .controls-bar {
+            background: var(--tv-panel); border-radius: 12px; padding: 15px 25px;
+            display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--tv-border);
+        }
+        .controls-left { display: flex; align-items: center; gap: 20px; }
+        
+        .play-btn {
+            background: var(--tv-accent); border: none; width: 50px; height: 50px; border-radius: 50%;
+            color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+        }
+        .play-btn:hover { background: var(--tv-accent-hover); transform: scale(1.05); }
+        .play-btn:active { transform: scale(0.95); }
+
+        .volume-container { display: flex; align-items: center; gap: 10px; }
+        .volume-slider { -webkit-appearance: none; width: 120px; height: 6px; background: var(--tv-border); border-radius: 5px; outline: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
+        .volume-slider::-webkit-slider-thumb:hover { background: var(--tv-accent); transform: scale(1.2); }
+        
+        #statusText { font-size: 0.9rem; font-weight: 500; color: var(--tv-text-muted); }
+
+        /* INFO & ABOUT CARDS */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card-panel { background: var(--tv-panel); border-radius: 12px; padding: 25px; border: 1px solid var(--tv-border); }
+        .card-panel h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: var(--tv-text); }
+        .card-panel h2::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--tv-accent); border-radius: 2px; }
+        
+        .station-desc { font-size: 0.95rem; line-height: 1.6; color: var(--tv-text-muted); text-align: justify; margin-bottom: 15px; }
+        .contact-email a { color: var(--tv-blue); text-decoration: none; font-weight: 500; }
+        .contact-email a:hover { text-decoration: underline; }
+
+        .fb-wrapper { width: 100%; border-radius: 8px; overflow: hidden; background: #fff; min-height: 300px; }
+
+        /* RIGHT COLUMN: LIVE CHAT */
+        .chat-sidebar {
+            background: var(--tv-panel); border-radius: 12px; border: 1px solid var(--tv-border);
+            display: flex; flex-direction: column; height: calc(100vh - 120px); position: sticky; top: 90px;
+        }
+        .chat-header { padding: 15px 20px; border-bottom: 1px solid var(--tv-border); display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { font-size: 1.1rem; font-weight: 700; }
+        .chat-header-status { font-size: 0.75rem; color: #4caf50; background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 4px; }
+
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .chat-message { display: flex; flex-direction: column; gap: 4px; word-wrap: break-word; animation: fadeIn 0.3s ease; }
+        .chat-sender-name { font-size: 0.8rem; font-weight: 700; color: var(--tv-text-muted); }
+        .self .chat-sender-name { color: var(--tv-accent); text-align: right; }
+        
+        .chat-bubble {
+            background: var(--tv-border); padding: 10px 14px; border-radius: 8px 8px 8px 0;
+            font-size: 0.9rem; color: var(--tv-text); max-width: 90%; align-self: flex-start;
+        }
+        .self .chat-bubble { background: rgba(229, 9, 20, 0.15); border: 1px solid rgba(229, 9, 20, 0.3); border-radius: 8px 8px 0 8px; align-self: flex-end; }
+        
+        .chat-meta { font-size: 0.65rem; color: var(--tv-text-muted); display: flex; gap: 10px; align-items: center; margin-top: 2px; }
+        .self .chat-meta { justify-content: flex-end; }
+
+        .chat-input-area { padding: 15px 20px; border-top: 1px solid var(--tv-border); display: flex; flex-direction: column; gap: 10px; background: var(--tv-panel); border-radius: 0 0 12px 12px; }
+        .chat-input {
+            width: 100%; padding: 10px 15px; border-radius: 6px; border: 1px solid var(--tv-border);
+            background: var(--tv-bg); color: var(--tv-text); font-family: inherit; font-size: 0.9rem; outline: none;
+        }
+        .chat-input:focus { border-color: var(--tv-accent); }
+        .input-row { display: flex; gap: 10px; }
+        
+        .send-btn {
+            background: var(--tv-accent); color: white; border: none; padding: 0 20px; border-radius: 6px;
+            font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .send-btn:hover { background: var(--tv-accent-hover); }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--tv-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--tv-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--tv-text-muted); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .tv-main-layout { grid-template-columns: 1fr; padding: 15px; }
+            .chat-sidebar { height: 500px; position: relative; top: 0; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            header { padding: 10px 15px; flex-wrap: wrap; gap: 10px; }
+            .clock-container { display: none; }
+            .tv-screen-container { border-radius: 8px; }
+            .controls-bar { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .controls-left { width: 100%; justify-content: space-between; }
+            .lower-thirds { padding: 10px 15px; flex-direction: column; align-items: flex-start; gap: 5px; }
+            .now-playing-label { font-size: 0.7rem; }
+            .now-playing-text { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <div class="tv-loader"></div>
+        <div class="preloader-text" id="preloaderText">INITIALIZING BROADCAST...</div>
+        <div class="offline-message" id="offlineMessage">⚠️ NO SIGNAL DETECTED</div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="brand">
+            <!-- Fixed Logo Image -->
+            <img src="441510909_122141243984227757_7243628959601385331_n (3).jpg" alt="Rhythm 101 Logo" class="station-logo" onerror="this.style.display='none'">
+            <h1>Rhythm 101 <span>TV</span></h1>
+        </div>
+        <div class="header-controls">
+            <div class="clock-container">
+                <div class="clock">
+                    <span class="clock-label">Local Time</span>
+                    <span class="clock-time" id="localTime">--:--:--</span>
+                </div>
+                <div class="clock" style="border-left: 1px solid var(--tv-border); padding-left: 15px;">
+                    <span class="clock-label">Philippines (PST)</span>
+                    <span class="clock-time" id="phTime">--:--:--</span>
+                </div>
+            </div>
+            <button id="themeToggle" class="theme-toggle" title="Toggle Theme">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN GRID -->
+    <main class="tv-main-layout" id="mainAppContent">
+        
+        <!-- LEFT COLUMN: TV PLAYER -->
+        <div class="tv-player-section" id="playerContainer">
+            
+            <!-- TV SCREEN -->
+            <div class="tv-screen-container">
+                <div class="live-badge">
+                    <div class="live-dot"></div>
+                    <span>LIVE</span>
+                </div>
+                
+                <!-- MistServer Native Video Container -->
+                <div id="videoStream" class="tv-video"></div>
+
+                <!-- Lower Thirds Marquee -->
+                <div class="lower-thirds">
+                    <div class="now-playing-label">Now Playing</div>
+                    <div class="marquee-wrapper">
+                        <span class="now-playing-text" id="nowPlayingText">Fetching TV stream metadata...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROLS -->
+            <div class="controls-bar">
+                <div class="controls-left">
+                    <button class="play-btn" id="playBtn">
+                        <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pauseIcon" width="24" height="24" viewBox="0 0 24 24" fill="white" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <div class="volume-container">
+                        <span id="volIcon">🔊</span>
+                        <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                    </div>
+                </div>
+                <div id="statusText">Ready to Broadcast</div>
+            </div>
+
+            <!-- INFO CARDS (Grid below player) -->
+            <div class="info-grid">
+                <div class="card-panel">
+                    <h2>About The TV Station</h2>
+                    <p class="station-desc">
+                        Welcome to Rhythm 101 TV, the premier online visual radio station broadcasting live from the beautiful Bicol Region in the Philippines. We are your number one source for essential music videos, live entertainment, and the latest hits. Tune in, drop a request in the live chat, and watch the beat!
+                    </p>
+                    <div class="contact-email">
+                        Business & Inquiries: <a href="mailto:rhythm101fm@gmail.com">rhythm101fm@gmail.com</a>
+                    </div>
+                </div>
+                
+                <div class="card-panel" style="padding: 10px;">
+                    <div class="fb-wrapper">
+                        <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FRHYTHM101FM&tabs=timeline&width=340&height=300&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: LIVE CHAT -->
+        <aside class="chat-sidebar">
+            <div class="chat-header">
+                <h2 id="chatTitle" title="Double-click for Admin Access" style="cursor: pointer;">Live Requests</h2>
+                <span class="chat-header-status">● Connected</span>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div style="opacity: 0.5; text-align: center; font-size: 0.8rem; margin: auto;">Connecting to broadcast chat...</div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chatName" class="chat-input" placeholder="Your Full Name (First & Last)" maxlength="50">
+                <div class="input-row">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Type a song/video request..." autocomplete="off">
+                    <button id="sendBtn" class="send-btn">Send</button>
+                </div>
+                <div style="font-size: 0.65rem; color: var(--tv-text-muted); text-align: center;">
+                    Messages auto-delete after 24 hours.
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- MAIN SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 🌐 MISTSERVER INTERNET CONFIGURATION 🌐
+        // =========================================================================
+        // Change the URL below from "http://localhost:8080" to your Public IP Address
+        // or your Ngrok/Cloudflare Tunnel URL to broadcast to the entire internet!
+        // Example: const MISTSERVER_HOST = "https://1234-abcd.ngrok-free.app";
+        // Example: const MISTSERVER_HOST = "http://203.0.113.50:8080";
+        // =========================================================================
+        const MISTSERVER_HOST = "https://lozenged-delsie-pretendedly.ngrok-free.dev";
+        // =========================================================================
+
+
+        // --- PRELOADER AND INTERNET LOGIC ---
+        const preloader = document.getElementById('preloader');
+        const mainContent = document.getElementById('mainAppContent');
+        const preloaderText = document.getElementById('preloaderText');
+        const offlineMessage = document.getElementById('offlineMessage');
+        const loaderAnim = document.querySelector('.tv-loader');
+        let isWindowLoaded = false;
+
+        function checkInternetConnection() {
+            if (!navigator.onLine) {
+                loaderAnim.style.display = 'none';
+                preloaderText.style.display = 'none';
+                offlineMessage.style.display = 'block';
+            } else {
+                loaderAnim.style.display = 'flex';
+                preloaderText.style.display = 'block';
+                offlineMessage.style.display = 'none';
+                if (isWindowLoaded) {
+                    setTimeout(() => {
+                        preloader.classList.add('hidden');
+                        mainContent.classList.add('show-content'); 
+                    }, 1000); 
+                }
+            }
+        }
+        window.addEventListener('load', () => { isWindowLoaded = true; checkInternetConnection(); });
+        window.addEventListener('online', checkInternetConnection);
+        window.addEventListener('offline', checkInternetConnection);
+
+        // --- THEME LOGIC ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); }
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        });
+
+        // --- MISTSERVER NATIVE PLAYER INTEGRATION ---
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const container = document.getElementById('playerContainer');
+        const statusText = document.getElementById('statusText');
+        const volumeControl = document.getElementById('volumeControl');
+        const volIcon = document.getElementById('volIcon');
+        let playPromise; 
+
+        // 1. Inject MistServer's official player.js dynamically using our configured Internet Host
+        function initMistServerPlayer() {
+            var a = function() {
+                try {
+                    // Check if MistPlayer loaded successfully instead of throwing a generic error
+                    if (typeof mistPlay !== "undefined") {
+                        // Initialize MistPlayer on our #videoStream container
+                        // NOTE: Changed back to "beta" because your screenshot showed "beta" stream working perfectly!
+                        // If you ever want to use "zstream", just change "beta" to "zstream" below when OBS is streaming to it.
+                        mistPlay("beta", {
+                            target: document.getElementById("videoStream"),
+                            autoplay: false,
+                            controls: false, // Hide default controls to use our custom buttons
+                            loop: true,
+                            host: MISTSERVER_HOST // Point the internal MistPlayer engine to your public URL
+                        });
+                    } else {
+                        throw new Error("MistServer script blocked or invalid.");
+                    }
+                } catch (err) {
+                    statusText.innerText = "Error: Stream Blocked by Ngrok";
+                    container.classList.remove('playing');
+                    if (MISTSERVER_HOST.includes("ngrok-free.dev")) {
+                        alert("NGROK SECURITY BLOCK DETECTED:\n\nBecause you are using a free Ngrok link, Ngrok is intercepting the video script with a warning page.\n\nTo fix this:\n1. Open a new tab and go to: " + MISTSERVER_HOST + "\n2. Click the blue 'Visit Site' button.\n3. Come back here and refresh the page.");
+                    }
+                }
+            };
+            
+            if (!window.mistplayers) {
+                var p = document.createElement("script");
+                
+                // Load the player.js file directly from the configured Host
+                p.src = MISTSERVER_HOST + "/player.js";
+                
+                // NGROK FIX: Detect if Ngrok's free tier is blocking the script with a warning page
+                p.onerror = function() {
+                    statusText.innerText = "Error: Stream Blocked by Ngrok";
+                    container.classList.remove('playing');
+                    if (MISTSERVER_HOST.includes("ngrok-free.dev")) {
+                        alert("NGROK SECURITY BLOCK DETECTED:\n\nBecause you are using a free Ngrok link, Ngrok is blocking the video script.\n\nTo fix this:\n1. Open a new tab and go to: " + MISTSERVER_HOST + "\n2. Click the blue 'Visit Site' button.\n3. Come back here and refresh the page.");
+                    }
+                };
+
+                document.head.appendChild(p);
+                p.onload = a;
+            } else {
+                a();
+            }
+        }
+        
+        // Start embedding the MistServer player immediately
+        initMistServerPlayer();
+
+        // 2. Connect Custom Controls to the injected MistServer Video Tag
+        volumeControl.addEventListener('input', (e) => {
+            const vol = parseFloat(e.target.value);
+            // Mistplayer injects a standard video tag we can control
+            const video = document.querySelector('#videoStream video');
+            if(video) video.volume = vol;
+            
+            if (vol === 0) volIcon.innerText = "🔇";
+            else if (vol < 0.5) volIcon.innerText = "🔉";
+            else volIcon.innerText = "🔊";
+        });
+
+        playBtn.addEventListener('click', () => {
+            const video = document.querySelector('#videoStream video');
+            
+            if (!video) {
+                alert("Stream is still connecting to MistServer. Please wait a second.");
+                return;
+            }
+
+            if (video.paused) {
+                statusText.innerText = "Connecting to TV Signal...";
+                playPromise = video.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
+                        container.classList.add('playing'); statusText.innerText = "Broadcasting Live";
+                    }).catch(err => {
+                        if (err.name !== 'AbortError') {
+                            statusText.innerText = "Signal Lost / Blocked";
+                            console.error("Video Play Error:", err);
+                        }
+                    });
+                }
+            } else {
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        video.pause();
+                        playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+                        container.classList.remove('playing'); statusText.innerText = "Broadcast Paused";
+                    }).catch(err => {});
+                } else {
+                    video.pause();
+                    playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+                    container.classList.remove('playing'); statusText.innerText = "Broadcast Paused";
+                }
+            }
+        });
+
+        // --- ZENO FM METADATA (Kept for Now Playing Text) ---
+        function fetchMetadata() {
+            const source = new EventSource('https://api.zeno.fm/mounts/metadata/subscribe/tzn3ovjs0nbvv');
+            const titleEl = document.getElementById('nowPlayingText');
+            source.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.streamTitle && data.streamTitle.trim() !== "") {
+                        titleEl.innerText = data.streamTitle;
+                    } else {
+                        titleEl.innerText = "Rhythm 101 TV - Live Stream";
+                    }
+                } catch (e) { }
+            };
+            source.onerror = function() { titleEl.innerText = "Rhythm 101 TV - Live Stream"; };
+        }
+        fetchMetadata();
+
+        // --- CLOCKS ---
+        function updateClocks() {
+            const now = new Date();
+            document.getElementById('localTime').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('phTime').innerText = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClocks, 1000); updateClocks();
+
+        // --- FIREBASE CHATBOX LOGIC ---
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyDDjVL_LMCtFa2XGUJWS05XNyBHKTbKEaM",
+            authDomain: "rhythm-101-broadcast.firebaseapp.com",
+            projectId: "rhythm-101-broadcast",
+            storageBucket: "rhythm-101-broadcast.firebasestorage.app",
+            messagingSenderId: "143958198688",
+            appId: "1:143958198688:web:89216f28c3b151dec0fcc5",
+            measurementId: "G-0EXPY7CV3C"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
+        
+        const chatMessagesEl = document.getElementById('chatMessages');
+        const chatName = document.getElementById('chatName');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatTitle = document.getElementById('chatTitle');
+        let currentUser = null;
+        let unsubscribeMessages = null;
+        let currentMessages = [];
+        let isAdmin = localStorage.getItem('rhythmAdmin') === 'true';
+
+        chatTitle.addEventListener('dblclick', () => {
+            if (!isAdmin) {
+                const pwd = prompt("Enter Admin Password to enable deletion:");
+                if (pwd === "rhythm101") { 
+                    isAdmin = true; localStorage.setItem('rhythmAdmin', 'true');
+                    alert("Admin mode enabled. You can now delete messages.");
+                    renderMessages(currentMessages);
+                } else if (pwd !== null) alert("Incorrect password.");
+            } else {
+                if (confirm("Disable Admin mode?")) {
+                    isAdmin = false; localStorage.removeItem('rhythmAdmin');
+                    renderMessages(currentMessages);
+                }
+            }
+        });
+
+        if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+            chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Offline</b><br>Database not connected.</div>';
+            chatInput.disabled = true; sendBtn.disabled = true;
+        } else {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'rhythm-101-radio';
+
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    subscribeToMessages();
+                    chatInput.disabled = false; sendBtn.disabled = false;
+                } else {
+                    if(unsubscribeMessages) unsubscribeMessages();
+                }
+            });
+
+            function subscribeToMessages() {
+                if (!currentUser) return;
+                const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'requests');
+                
+                unsubscribeMessages = onSnapshot(messagesRef, (snapshot) => {
+                    const now = Date.now();
+                    const oneDayMs = 24 * 60 * 60 * 1000;
+                    const messages = [];
+
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (now - data.timestamp > oneDayMs) {
+                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', docSnap.id)).catch(e => console.error(e));
+                        } else {
+                            messages.push({ id: docSnap.id, ...data });
+                        }
+                    });
+
+                    messages.sort((a, b) => a.timestamp - b.timestamp);
+                    currentMessages = messages;
+                    renderMessages(currentMessages);
+                }, (error) => {
+                    console.error("Error fetching messages:", error);
+                    chatMessagesEl.innerHTML = '<div style="color:red; text-align:center;">Failed to load chat.</div>';
+                });
+            }
+
+            function renderMessages(messages) {
+                if (messages.length === 0) {
+                    chatMessagesEl.innerHTML = '<div style="opacity: 0.5; text-align: center; margin: auto;">No active requests yet. Be the first!</div>';
+                    return;
+                }
+
+                chatMessagesEl.innerHTML = '';
+                messages.forEach(msg => {
+                    const isSelf = currentUser && msg.userId === currentUser.uid;
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `chat-message ${isSelf ? 'self' : 'other'}`;
+                    
+                    if (msg.name) {
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'chat-sender-name';
+                        nameDiv.textContent = isSelf ? 'You' : msg.name;
+                        wrapper.appendChild(nameDiv);
+                    }
+
+                    const bubble = document.createElement('div');
+                    bubble.className = 'chat-bubble';
+                    bubble.textContent = msg.text; 
+
+                    const metaDiv = document.createElement('div');
+                    metaDiv.className = 'chat-meta';
+
+                    const timeSpan = document.createElement('span');
+                    const date = new Date(msg.timestamp);
+                    timeSpan.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    metaDiv.appendChild(timeSpan);
+
+                    if (isAdmin) {
+                        const delBtn = document.createElement('span');
+                        delBtn.textContent = '🗑️';
+                        delBtn.style.cursor = 'pointer';
+                        delBtn.title = "Delete Request";
+                        delBtn.onclick = async () => {
+                            if(confirm("Delete this request?")) {
+                                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', msg.id)); } 
+                                catch(e) { alert("Failed to delete message."); }
+                            }
+                        };
+                        metaDiv.appendChild(delBtn);
+                    }
+
+                    wrapper.appendChild(bubble);
+                    wrapper.appendChild(metaDiv);
+                    chatMessagesEl.appendChild(wrapper);
+                });
+                
+                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+            }
+
+            async function handleSendMessage() {
+                const text = chatInput.value.trim();
+                const name = chatName.value.trim();
+                
+                const nameParts = name.split(' ').filter(part => part.length > 0);
+                if (nameParts.length < 2) {
+                    chatName.style.borderColor = 'var(--tv-accent)';
+                    chatName.value = '';
+                    chatName.placeholder = 'First & Last name required!';
+                    alert("Please enter your REAL FULL NAME (First Name and Last Name) to send a live request.");
+                    chatName.focus();
+                    return;
+                } else {
+                    chatName.style.borderColor = 'var(--tv-border)';
+                    localStorage.setItem('rhythmChatName', name);
+                }
+
+                if (!text || !currentUser) return;
+                
+                chatInput.value = ''; 
+                
+                try {
+                    const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'requests');
+                    await addDoc(messagesRef, {
+                        text: text, name: name, timestamp: Date.now(), userId: currentUser.uid
+                    });
+                } catch (error) {
+                    alert("Could not send request. Please try again.");
+                }
+            }
+
+            sendBtn.addEventListener('click', handleSendMessage);
+            chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+
+            chatName.value = localStorage.getItem('rhythmChatName') || '';
+
+            initAuth();
+        }
+    </script>
+</body>
+</html>
