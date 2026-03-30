@@ -170,7 +170,25 @@
         .tv-screen-container::before {
             content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2; background-size: 100% 4px, 6px 100%; pointer-events: none;
+            z-index: 4; background-size: 100% 4px, 6px 100%; pointer-events: none;
+        }
+
+        /* Custom No Signal Screen */
+        .no-signal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 3;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.5s ease;
+        }
+        .no-signal-overlay.active {
+            opacity: 1; visibility: visible;
+        }
+        .no-signal-overlay h2 {
+            color: var(--tv-accent); font-size: 2.5rem; letter-spacing: 4px; margin-bottom: 10px;
+            animation: pulse-text 2s infinite;
+        }
+        .no-signal-overlay p {
+            color: var(--tv-text-muted); font-size: 1.1rem;
         }
 
         /* LIVE Badge */
@@ -184,20 +202,27 @@
         .playing .live-dot { background-color: var(--tv-accent); box-shadow: 0 0 10px var(--tv-accent); animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        /* Lower Thirds */
-        .lower-thirds {
-            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 5;
-            background: var(--lower-third-bg); backdrop-filter: blur(10px);
-            border-top: 2px solid var(--tv-accent);
-            display: flex; align-items: center; padding: 15px 25px; gap: 20px;
+        /* Fullscreen API Styles */
+        .tv-player-section:fullscreen {
+            background: #000;
+            padding: 0;
+            justify-content: center;
+            gap: 0;
         }
-        .now-playing-label {
-            font-size: 0.8rem; font-weight: 900; text-transform: uppercase; color: var(--tv-accent);
-            white-space: nowrap; background: var(--tv-bg); padding: 5px 10px; border-radius: 4px;
+        .tv-player-section:fullscreen .tv-screen-container {
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            height: 100vh;
+            max-height: calc(100vh - 82px);
         }
-        .marquee-wrapper { flex: 1; overflow: hidden; white-space: nowrap; mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent); }
-        .now-playing-text { display: inline-block; font-size: 1.2rem; font-weight: 500; padding-left: 100%; animation: marquee 20s linear infinite; color: var(--tv-text); }
-        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .tv-player-section:fullscreen .controls-bar {
+            border-radius: 0;
+            border: none;
+        }
+        .tv-player-section:fullscreen .info-grid {
+            display: none;
+        }
 
         /* CONTROLS BAR */
         .controls-bar {
@@ -219,6 +244,7 @@
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--tv-text); cursor: pointer; transition: 0.2s; }
         .volume-slider::-webkit-slider-thumb:hover { background: var(--tv-accent); transform: scale(1.2); }
         
+        .controls-right { display: flex; align-items: center; gap: 15px; }
         #statusText { font-size: 0.9rem; font-weight: 500; color: var(--tv-text-muted); }
 
         /* INFO & ABOUT CARDS */
@@ -345,15 +371,13 @@
                     <span>LIVE</span>
                 </div>
                 
-                <!-- MistServer Native Video Container -->
+                <!-- Twitch Video Container -->
                 <div id="videoStream" class="tv-video"></div>
 
-                <!-- Lower Thirds Marquee -->
-                <div class="lower-thirds">
-                    <div class="now-playing-label">Now Playing</div>
-                    <div class="marquee-wrapper">
-                        <span class="now-playing-text" id="nowPlayingText">Fetching TV stream metadata...</span>
-                    </div>
+                <!-- Custom No Signal Overlay -->
+                <div id="noSignalOverlay" class="no-signal-overlay active">
+                    <h2>NO SIGNAL</h2>
+                    <p>Broadcast is currently offline.</p>
                 </div>
             </div>
 
@@ -369,7 +393,14 @@
                         <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
                     </div>
                 </div>
-                <div id="statusText">Ready to Broadcast</div>
+                <div class="controls-right">
+                    <div id="statusText">Ready to Broadcast</div>
+                    <button id="fullscreenBtn" class="theme-toggle" title="Full Screen" style="border: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- INFO CARDS (Grid below player) -->
@@ -426,11 +457,7 @@
         // =========================================================================
         // 🌐 PERMANENT INTERNET TV CONFIGURATION (TWITCH ENGINE) 🌐
         // =========================================================================
-        // 1. Create a free Twitch.tv account for your station.
-        // 2. Put your exact Twitch username below (e.g., "rhythm101tv"):
         const TWITCH_CHANNEL = "neilelethrix"; 
-        
-        // 3. Put your Vercel URL below (without https://) so the player is allowed to load:
         const YOUR_WEBSITE_DOMAIN = "tv-wine-delta.vercel.app"; 
         // =========================================================================
 
@@ -480,6 +507,7 @@
         const statusText = document.getElementById('statusText');
         const volumeControl = document.getElementById('volumeControl');
         const volIcon = document.getElementById('volIcon');
+        const noSignalOverlay = document.getElementById('noSignalOverlay');
         
         let twitchPlayer;
 
@@ -502,6 +530,7 @@
             twitchPlayer.addEventListener(Twitch.Player.PLAYING, () => {
                 playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
                 container.classList.add('playing'); statusText.innerText = "Broadcasting Live";
+                noSignalOverlay.classList.remove('active'); // Hide custom offline screen
             });
 
             twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
@@ -511,6 +540,8 @@
             
             twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
                 statusText.innerText = "Station Offline"; container.classList.remove('playing');
+                playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+                noSignalOverlay.classList.add('active'); // Show custom offline screen
             });
         }
         
@@ -541,23 +572,29 @@
             }
         });
 
-        // --- ZENO FM METADATA (Kept for Now Playing Text) ---
-        function fetchMetadata() {
-            const source = new EventSource('https://api.zeno.fm/mounts/metadata/subscribe/tzn3ovjs0nbvv');
-            const titleEl = document.getElementById('nowPlayingText');
-            source.onmessage = function(event) {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.streamTitle && data.streamTitle.trim() !== "") {
-                        titleEl.innerText = data.streamTitle;
-                    } else {
-                        titleEl.innerText = "Rhythm 101 TV - Live Stream";
-                    }
-                } catch (e) { }
-            };
-            source.onerror = function() { titleEl.innerText = "Rhythm 101 TV - Live Stream"; };
-        }
-        fetchMetadata();
+        // --- FULLSCREEN LOGIC ---
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const playerSection = document.getElementById('playerContainer');
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (playerSection.requestFullscreen) {
+                    playerSection.requestFullscreen();
+                } else if (playerSection.webkitRequestFullscreen) { /* Safari */
+                    playerSection.webkitRequestFullscreen();
+                } else if (playerSection.msRequestFullscreen) { /* IE11 */
+                    playerSection.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
+        });
 
         // --- CLOCKS ---
         function updateClocks() {
