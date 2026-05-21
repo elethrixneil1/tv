@@ -302,7 +302,7 @@
             bottom: -5px;
             transform-origin: bottom center;
             transform: rotate(-45deg);
-            transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.05s ease-out; /* Pinabilis para sumabay sa totoong kanta */
             z-index: 2;
             box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
             border-radius: 2px;
@@ -485,6 +485,10 @@
                 <!-- Twitch Video Container -->
                 <div id="videoStream" class="tv-video"></div>
 
+                <!-- DIRECT ZENO.FM AUDIO STREAM (For real VU meter sync) -->
+                <!-- Naka-crossorigin anonymous para ma-analyze ng Web Audio API -->
+                <audio id="zenoAudioStream" crossorigin="anonymous" src="https://stream.zeno.fm/kpbamsatoqxtv" style="display:none;"></audio>
+
                 <!-- Standard Offline Screen -->
                 <div id="noSignalOverlay" class="no-signal-overlay active">
                     <h2>NO SIGNAL</h2>
@@ -641,7 +645,7 @@
             localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
         });
 
-        // --- TWITCH NATIVE PLAYER INTEGRATION & VU METER ---
+        // --- TWITCH PLAYER, ZENO STREAM & TOTOONG VU METER ---
         const playBtn = document.getElementById('playBtn');
         const playIcon = document.getElementById('playIcon');
         const pauseIcon = document.getElementById('pauseIcon');
@@ -651,6 +655,11 @@
         const volIcon = document.getElementById('volIcon');
         const noSignalOverlay = document.getElementById('noSignalOverlay');
         
+        // Audio and Web Audio API Variables
+        const zenoAudioStream = document.getElementById('zenoAudioStream');
+        let audioCtx, analyser, dataArray;
+        let isWebAudioInitialized = false;
+
         // VU Meter Elements
         const needleL = document.getElementById('needleL');
         const needleR = document.getElementById('needleR');
@@ -660,55 +669,92 @@
         let isStreamPlaying = false;
         let currentVolumeLevel = 1.0;
         let previousVolumeLevel = 1.0;
-        let vuInterval;
+        
         let smoothedLevelL = 0;
         let smoothedLevelR = 0;
 
-        // INAYOS NA AUDIO SIMULATION: Mas sumasabay na sa beat!
-        function animateVUMeters() {
-            if (!isStreamPlaying) {
+        // Web Audio API Initialization
+        function initWebAudio() {
+            if (isWebAudioInitialized) return;
+            try {
+                // Initialize audio context
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                
+                // FFT Size (mas maliit, mas mabilis ang response ng meter)
+                analyser.fftSize = 64; 
+                
+                // Ikonekta ang Zeno stream sa analyzer at sa speakers
+                const source = audioCtx.createMediaElementSource(zenoAudioStream);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                isWebAudioInitialized = true;
+                
+                // Simulan ang animation loop
+                requestAnimationFrame(updateVUMeter);
+            } catch (e) {
+                console.error("Web Audio API Error:", e);
+            }
+        }
+
+        // TOTOONG AUDIO ANALYSIS: Binabasa nito ang kanta mula sa Zeno.fm
+        function updateVUMeter() {
+            if (!isStreamPlaying || !analyser) {
                 needleL.style.transform = `rotate(-45deg)`;
                 needleR.style.transform = `rotate(-45deg)`;
                 dots.forEach(dot => dot.classList.remove('active'));
                 smoothedLevelL = 0;
                 smoothedLevelR = 0;
+                requestAnimationFrame(updateVUMeter);
                 return;
             }
 
-            const now = Date.now();
+            // Kunin ang tunay na frequency data
+            analyser.getByteFrequencyData(dataArray);
             
-            // Gumawa ng simulated "beat" gamit ang Math.sin para sa kumpas ng bass/kick drum
-            // Binabago-bago ang bilis (tempo) base sa oras para mukhang nagbabago ang kanta
-            const beatWave = Math.sin(now / 180); 
-            const beatPeak = Math.pow(beatWave, 4); // Pinapatalim ang peak para maging 'sipa'
-            
-            // Nagdadagdag ng kaunting random na galaw para sa boses o iba pang instrumento
-            const noise = Math.random() * 0.35;
+            let sumL = 0;
+            let sumR = 0;
+            const halfLength = Math.floor(dataArray.length / 2);
 
-            // Pinagsamang 'beat' at 'noise' para magmukhang totoong musika
-            const rawAudioSim = Math.min(1, (beatPeak * 0.65) + noise + 0.1);
+            // Hinahati natin ang frequency (Lower para sa left, Higher para sa right)
+            for (let i = 0; i < halfLength; i++) {
+                sumL += dataArray[i];
+            }
+            for (let i = halfLength; i < dataArray.length; i++) {
+                sumR += dataArray[i];
+            }
 
-            const targetL = rawAudioSim * currentVolumeLevel;
-            const targetR = targetL + (Math.random() * 0.2 - 0.1); // Stereo effect para magkaiba ng unti ang left/right
+            let avgL = sumL / halfLength;
+            let avgR = sumR / (dataArray.length - halfLength);
 
-            // Easing/Smoothing para mas makatotohanan ang pagtalbog ng karayom
-            smoothedLevelL += (targetL - smoothedLevelL) * 0.45;
-            smoothedLevelR += (targetR - smoothedLevelR) * 0.45;
+            // Normalize (0 hanggang 1) at lagyan ng multiplier para mas malakas ang sipa
+            let rawL = Math.min(1, (avgL / 255) * 1.5);
+            let rawR = Math.min(1, (avgR / 255) * 2.0); // Treble usually needs more boost
 
-            // Limitahan mula 0 hanggang 1
+            // I-apply ang volume level ng user
+            const targetL = rawL * currentVolumeLevel;
+            const targetR = rawR * currentVolumeLevel;
+
+            // Smoothing para mukhang analog (hindi masyadong pautal-utal)
+            smoothedLevelL += (targetL - smoothedLevelL) * 0.35;
+            smoothedLevelR += (targetR - smoothedLevelR) * 0.35;
+
+            // Clamp values
             const valL = Math.max(0, Math.min(1, smoothedLevelL));
             const valR = Math.max(0, Math.min(1, smoothedLevelR));
 
-            // I-convert ang value (0 to 1) papunta sa anggulo ng karayom (-45deg to +45deg)
+            // I-convert ang value sa anggulo ng karayom (-45deg to +45deg)
             const angleL = -45 + (valL * 90);
             const angleR = -45 + (valR * 90);
 
             needleL.style.transform = `rotate(${angleL}deg)`;
             needleR.style.transform = `rotate(${angleR}deg)`;
 
-            // Pailawin ang mga LED base sa lakas ng simulation
+            // Pailawin ang mga LED base sa average
             const avgVal = (valL + valR) / 2;
-            const activeDots = Math.floor(avgVal * dots.length * 1.5); 
+            const activeDots = Math.floor(avgVal * dots.length * 1.3); 
             
             dots.forEach((dot, index) => {
                 if (index < activeDots) {
@@ -717,6 +763,8 @@
                     dot.classList.remove('active');
                 }
             });
+
+            requestAnimationFrame(updateVUMeter);
         }
 
         function initTwitchPlayer() {
@@ -731,7 +779,10 @@
             twitchPlayer = new Twitch.Player("videoStream", options);
 
             twitchPlayer.addEventListener(Twitch.Player.READY, () => {
-                twitchPlayer.setVolume(currentVolumeLevel);
+                // I-MUTE ANG TWITCH VIDEO! Ang naririnig na audio ay manggagaling sa Zeno.fm
+                twitchPlayer.setVolume(0); 
+                twitchPlayer.setMuted(true);
+                zenoAudioStream.volume = currentVolumeLevel;
                 statusText.innerText = "Ready to Play";
             });
 
@@ -744,32 +795,20 @@
                 playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
                 container.classList.add('playing'); statusText.innerText = "Playing Live";
                 noSignalOverlay.classList.remove('active');
-                
-                // Simulan ang VU Meter Animation
                 isStreamPlaying = true;
-                if(vuInterval) clearInterval(vuInterval);
-                vuInterval = setInterval(animateVUMeters, 50); // In-update sa 50ms para mas mabilis at smooth ang galaw (20 FPS)
             });
 
             twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
                 playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
                 container.classList.remove('playing'); statusText.innerText = "Paused";
-                
-                // Itigil ang VU Meter
                 isStreamPlaying = false;
-                if(vuInterval) clearInterval(vuInterval);
-                animateVUMeters(); 
             });
             
             twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
                 statusText.innerText = "Offline"; container.classList.remove('playing');
                 playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
                 noSignalOverlay.classList.add('active');
-                
-                // Itigil ang VU Meter
                 isStreamPlaying = false;
-                if(vuInterval) clearInterval(vuInterval);
-                animateVUMeters(); 
             });
         }
         
@@ -786,20 +825,14 @@
             } else {
                 currentVolumeLevel = previousVolumeLevel || 1;
             }
-            if (twitchPlayer) {
-                twitchPlayer.setMuted(currentVolumeLevel === 0);
-                twitchPlayer.setVolume(currentVolumeLevel);
-            }
+            zenoAudioStream.volume = currentVolumeLevel;
             updateVolumeUI(currentVolumeLevel);
         });
 
         volumeControl.addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
             currentVolumeLevel = vol; 
-            if (twitchPlayer) {
-                twitchPlayer.setMuted(vol === 0);
-                twitchPlayer.setVolume(vol);
-            }
+            zenoAudioStream.volume = vol;
             updateVolumeUI(vol);
         });
 
@@ -809,11 +842,22 @@
                 return;
             }
 
+            initWebAudio();
+
+            // Resume audio context if the browser suspended it
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
             if (!container.classList.contains('playing')) {
                 statusText.innerText = "Connecting...";
                 twitchPlayer.play();
+                zenoAudioStream.play().catch(e => console.error("Zeno Stream Play Error: ", e));
+                isStreamPlaying = true;
             } else {
                 twitchPlayer.pause();
+                zenoAudioStream.pause();
+                isStreamPlaying = false;
             }
         });
 
