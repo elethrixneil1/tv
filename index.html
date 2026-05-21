@@ -157,27 +157,24 @@
         
         @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* Fullscreen Styles - Hides Controls Properly */
+        /* Fullscreen Styles - Properly Overlays Custom Controls */
         .tv-player-section:fullscreen { background: #000; padding: 0; justify-content: center; gap: 0; position: relative; }
         .tv-player-section:fullscreen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: 100vh; }
-        .tv-player-section:fullscreen .controls-bar { 
-            position: absolute; bottom: 20px; right: 20px; width: auto; 
-            background: rgba(0,0,0,0.6); border: none; padding: 10px; border-radius: 8px; z-index: 10; 
-        }
-        .tv-player-section:fullscreen .controls-left,
-        .tv-player-section:fullscreen .vu-meter-wrapper { display: none; }
-        .tv-player-section:fullscreen #statusText { display: none; }
-        .tv-player-section:fullscreen .info-grid { display: none; }
-
         .tv-player-section:-webkit-full-screen { background: #000; padding: 0; justify-content: center; gap: 0; width: 100%; height: 100%; position: relative; }
         .tv-player-section:-webkit-full-screen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: 100vh; }
+
+        .tv-player-section:fullscreen .controls-bar,
         .tv-player-section:-webkit-full-screen .controls-bar { 
-            position: absolute; bottom: 20px; right: 20px; width: auto; margin: 0; 
-            background: rgba(0,0,0,0.6); border: none; padding: 10px; border-radius: 8px; z-index: 10; 
+            position: absolute; bottom: 20px; left: 20px; right: 20px; width: auto; margin: 0; 
+            background: rgba(15, 17, 30, 0.85); border: 1px solid rgba(255,255,255,0.1); 
+            padding: 10px 20px; border-radius: 8px; z-index: 10; 
         }
-        .tv-player-section:-webkit-full-screen .controls-left,
-        .tv-player-section:-webkit-full-screen .vu-meter-wrapper { display: none; }
-        .tv-player-section:-webkit-full-screen #statusText { display: none; }
+        .tv-player-section:fullscreen .controls-left,
+        .tv-player-section:-webkit-full-screen .controls-left { display: flex; } /* Keep controls visible */
+        
+        .tv-player-section:fullscreen .vu-meter-wrapper,
+        .tv-player-section:-webkit-full-screen .vu-meter-wrapper,
+        .tv-player-section:fullscreen .info-grid,
         .tv-player-section:-webkit-full-screen .info-grid { display: none; }
 
         /* CONTROLS BAR */
@@ -199,6 +196,40 @@
 
         .volume-container { display: flex; align-items: center; gap: 10px; }
         #volIcon { cursor: pointer; user-select: none; width: 22px; text-align: center; transition: transform 0.2s; }
+        #volIcon:hover { transform: scale(1.1); color: var(--tv-accent); }
+        
+        /* Modern Styled Volume Slider */
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+        body.light-mode .volume-slider { background: rgba(0, 0, 0, 0.2); }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--tv-accent);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .volume-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border: none;
+            border-radius: 50%;
+            background: var(--tv-accent);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .volume-slider::-webkit-slider-thumb:hover, .volume-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+
         .controls-right { display: flex; align-items: center; gap: 15px; }
         #statusText { font-size: 0.85rem; font-weight: 500; color: var(--tv-text-muted); }
 
@@ -393,7 +424,16 @@
             
             .tv-player-section:-webkit-full-screen .controls-bar { flex-direction: row; }
             .tv-player-section:fullscreen .controls-bar { flex-direction: row; }
-            .vu-meter-wrapper { transform: scale(0.85); margin-top: 0; padding: 10px; gap: 15px; }
+            
+            /* Better VU Meter handling on mobile */
+            .vu-meter-wrapper { 
+                flex-wrap: wrap; 
+                gap: 15px; 
+                padding: 15px; 
+            }
+            .analog-meter { width: 120px; height: 65px; }
+            .meter-scale { width: 90px; height: 45px; top: 10px; }
+            .needle { height: 50px; }
         }
     </style>
 </head>
@@ -453,6 +493,11 @@
                         <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
                     <div class="volume-container">
+                        <!-- Re-added missing volume icon -->
+                        <svg id="volIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
                         <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
                     </div>
                 </div>
@@ -597,6 +642,7 @@
         const container = document.getElementById('playerContainer');
         const statusText = document.getElementById('statusText');
         const volumeControl = document.getElementById('volumeControl');
+        const volIcon = document.getElementById('volIcon');
         const noSignalOverlay = document.getElementById('noSignalOverlay');
         
         // VU Meter Elements
@@ -607,6 +653,7 @@
         let twitchPlayer;
         let isStreamPlaying = false;
         let currentVolumeLevel = 1.0;
+        let previousVolumeLevel = 1.0; // Added for mute toggle state
         let vuInterval;
         let smoothedLevelL = 0;
         let smoothedLevelR = 0;
@@ -714,6 +761,21 @@
             volumeControl.value = vol;
         }
 
+        // Added Mute Toggle Functionality
+        volIcon.addEventListener('click', () => {
+            if (currentVolumeLevel > 0) {
+                previousVolumeLevel = currentVolumeLevel;
+                currentVolumeLevel = 0;
+            } else {
+                currentVolumeLevel = previousVolumeLevel || 1;
+            }
+            if (twitchPlayer) {
+                twitchPlayer.setMuted(currentVolumeLevel === 0);
+                twitchPlayer.setVolume(currentVolumeLevel);
+            }
+            updateVolumeUI(currentVolumeLevel);
+        });
+
         volumeControl.addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
             currentVolumeLevel = vol; // Store level so VU meter knows the max volume
@@ -784,7 +846,8 @@
         // --- CLOCKS ---
         function updateClocks() {
             const now = new Date();
-            document.getElementById('localTime').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            // Fixed potential syntax quirk by replacing [] with undefined
+            document.getElementById('localTime').innerText = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             document.getElementById('phTime').innerText = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
         setInterval(updateClocks, 1000); updateClocks();
@@ -935,7 +998,7 @@
 
                     const timeSpan = document.createElement('span');
                     const date = new Date(msg.timestamp);
-                    timeSpan.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    timeSpan.textContent = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
                     metaDiv.appendChild(timeSpan);
 
                     if (isAdmin) {
