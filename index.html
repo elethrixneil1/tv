@@ -1,799 +1,1162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rhythm 101 Broadcast</title>
-    
-    <link rel="icon" type="image/jpeg" href="441510909_122141243984227757_7243628959601385331_n (3).jpg">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    
-    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm 101 Broadcast</title>
+    
+    <link rel="icon" type="image/jpeg" href="441510909_122141243984227757_7243628959601385331_n (3).jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 
-    <style>
-        :root {
-            /* Rhythm 101 Vibrant Gradient Theme */
-            --tv-bg: linear-gradient(135deg, #511845 0%, #1a1b3a 40%, #0e5b7a 100%);
-            --tv-panel: rgba(33, 36, 61, 0.65);
-            --tv-panel-hover: rgba(45, 49, 82, 0.85);
-            --tv-border: rgba(255, 255, 255, 0.08);
-            --tv-accent: #ff2a5f; /* Vibrant Pink/Red */
-            --tv-accent-hover: #ff4d79;
-            --tv-text: #ffffff;
-            --tv-text-muted: #a1a8c2;
-            --tv-blue: #00e5ff;
-            --glass-bg: rgba(33, 36, 61, 0.85);
-        }
+    <style>
+        :root {
+            /* Rhythm 101 Vibrant Gradient Theme */
+            --tv-bg: linear-gradient(135deg, #511845 0%, #1a1b3a 40%, #0e5b7a 100%);
+            --tv-panel: rgba(33, 36, 61, 0.65);
+            --tv-panel-hover: rgba(45, 49, 82, 0.85);
+            --tv-border: rgba(255, 255, 255, 0.08);
+            --tv-accent: #ff2a5f; /* Vibrant Pink/Red */
+            --tv-accent-hover: #ff4d79;
+            --tv-text: #ffffff;
+            --tv-text-muted: #a1a8c2;
+            --tv-blue: #00e5ff;
+            --glass-bg: rgba(33, 36, 61, 0.85);
+        }
 
-        body.light-mode {
-            --tv-bg: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e0f7fa 100%);
-            --tv-panel: rgba(255, 255, 255, 0.7);
-            --tv-panel-hover: rgba(255, 255, 255, 0.9);
-            --tv-border: rgba(0, 0, 0, 0.05);
-            --tv-accent: #ff2a5f;
-            --tv-text: #1a1b3a;
-            --tv-text-muted: #666b85;
-            --glass-bg: rgba(255, 255, 255, 0.9);
-        }
+        body.light-mode {
+            --tv-bg: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e0f7fa 100%);
+            --tv-panel: rgba(255, 255, 255, 0.7);
+            --tv-panel-hover: rgba(255, 255, 255, 0.9);
+            --tv-border: rgba(0, 0, 0, 0.05);
+            --tv-accent: #ff2a5f;
+            --tv-text: #1a1b3a;
+            --tv-text-muted: #666b85;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: var(--tv-bg);
-            background-attachment: fixed; /* Keeps the gradient smooth when scrolling */
-            color: var(--tv-text);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            transition: color 0.3s ease;
-        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--tv-bg);
+            background-attachment: fixed; /* Pinapanatiling maayos ang gradient kapag nag-scroll */
+            color: var(--tv-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: color 0.3s ease;
+        }
 
-        /* --- PRELOADER ANIMATION STYLES --- */
-        #preloader {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--tv-bg);
-            z-index: 9999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-        }
-        #preloader.hidden { opacity: 0; visibility: hidden; }
+        /* --- PRELOADER ANIMATION STYLES --- */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--tv-bg);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        #preloader.hidden { opacity: 0; visibility: hidden; }
 
-        .tv-loader {
-            width: 50px; height: 50px;
-            border: 4px solid var(--tv-border);
-            border-top-color: var(--tv-accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .preloader-text { font-size: 1.1rem; font-weight: 500; color: var(--tv-text); }
-        .offline-message { font-size: 1.1rem; font-weight: 700; color: var(--tv-accent); margin-top: 20px; display: none; }
+        .tv-loader {
+            width: 50px; height: 50px;
+            border: 4px solid var(--tv-border);
+            border-top-color: var(--tv-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .preloader-text { font-size: 1.1rem; font-weight: 500; color: var(--tv-text); }
+        .offline-message { font-size: 1.1rem; font-weight: 700; color: var(--tv-accent); margin-top: 20px; display: none; }
 
-        /* HEADER */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 30px;
-            background: var(--tv-panel);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--tv-border);
-            z-index: 10;
-        }
-        .brand { display: flex; align-items: center; gap: 15px; }
-        .station-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: contain; background: #ffffff; padding: 4px; }
-        .brand h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
-        .brand span { color: var(--tv-accent); font-weight: 900; }
-        
-        .header-controls { display: flex; align-items: center; gap: 20px; }
-        .clock-container { display: flex; gap: 15px; text-align: right; }
-        .clock { display: flex; flex-direction: column; }
-        .clock-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--tv-text-muted); }
-        .clock-time { font-size: 0.95rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--tv-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--tv-border);
+            z-index: 10;
+        }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .station-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: contain; background: #ffffff; padding: 4px; }
+        .brand h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; }
+        .brand span { color: var(--tv-accent); font-weight: 900; }
+        
+        .header-controls { display: flex; align-items: center; gap: 20px; }
+        .clock-container { display: flex; gap: 15px; text-align: right; }
+        .clock { display: flex; flex-direction: column; }
+        .clock-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: var(--tv-text-muted); }
+        .clock-time { font-size: 0.95rem; font-weight: 500; font-variant-numeric: tabular-nums; }
 
-        .theme-toggle {
-            background: transparent; border: 1px solid var(--tv-border); color: var(--tv-text);
-            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .theme-toggle:hover { background: var(--tv-border); }
+        .theme-toggle {
+            background: transparent; border: 1px solid var(--tv-border); color: var(--tv-text);
+            width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .theme-toggle:hover { background: var(--tv-border); }
 
-        /* MAIN LAYOUT */
-        .tv-main-layout {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 20px;
-            padding: 20px 30px;
-            max-width: 1800px;
-            margin: 0 auto;
-            width: 100%;
-            flex: 1;
-            opacity: 0; transform: translateY(10px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        .tv-main-layout.show-content { opacity: 1; transform: translateY(0); }
+        /* MAIN LAYOUT */
+        .tv-main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            padding: 20px 30px;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+            opacity: 0; transform: translateY(10px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .tv-main-layout.show-content { opacity: 1; transform: translateY(0); }
 
-        /* LEFT COLUMN: PLAYER & INFO */
-        .tv-player-section { display: flex; flex-direction: column; gap: 15px; }
+        /* LEFT COLUMN: PLAYER & INFO */
+        .tv-player-section { display: flex; flex-direction: column; gap: 15px; }
 
-        /* CLEAN WEB PLAYER */
-        .tv-screen-container {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--tv-border);
-            display: flex; align-items: center; justify-content: center;
-        }
+        /* CLEAN WEB PLAYER */
+        .tv-screen-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--tv-border);
+            display: flex; align-items: center; justify-content: center;
+        }
 
-        .tv-video {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; background-color: #000;
-        }
-        .tv-video video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+        .tv-video {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; background-color: #000;
+        }
+        .tv-video video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
 
-        /* Custom Offline Screen */
-        .no-signal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 3;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: opacity 0.5s ease;
-        }
-        .no-signal-overlay.active { opacity: 1; visibility: visible; }
-        .no-signal-overlay h2 { 
-            color: var(--tv-accent); font-size: 2.5rem; letter-spacing: 4px; margin-bottom: 10px; font-weight: 700;
-            animation: pulse-text 2s infinite; 
-        }
-        .no-signal-overlay p { color: var(--tv-text-muted); font-size: 1.1rem; }
-        
-        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        /* Custom Offline Screen */
+        .no-signal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 3;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.5s ease;
+        }
+        .no-signal-overlay.active { opacity: 1; visibility: visible; }
+        .no-signal-overlay h2 { 
+            color: var(--tv-accent); font-size: 2.5rem; letter-spacing: 4px; margin-bottom: 10px; font-weight: 700;
+            animation: pulse-text 2s infinite; 
+        }
+        .no-signal-overlay p { color: var(--tv-text-muted); font-size: 1.1rem; }
+        
+        @keyframes pulse-text { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* Fullscreen Styles - Hides Controls Properly */
-        .tv-player-section:fullscreen { background: #000; padding: 0; justify-content: center; gap: 0; position: relative; }
-        .tv-player-section:fullscreen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: 100vh; }
-        .tv-player-section:fullscreen .controls-bar { 
-            position: absolute; bottom: 20px; right: 20px; width: auto; 
-            background: rgba(0,0,0,0.6); border: none; padding: 10px; border-radius: 8px; z-index: 10; 
-        }
-        .tv-player-section:fullscreen .controls-left { display: none; }
-        .tv-player-section:fullscreen #statusText { display: none; }
-        .tv-player-section:fullscreen .info-grid { display: none; }
+        /* Fullscreen Styles - Properly Overlays Custom Controls */
+        .tv-player-section:fullscreen { background: #000; padding: 0; justify-content: center; gap: 0; position: relative; }
+        .tv-player-section:fullscreen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: 100vh; }
+        .tv-player-section:-webkit-full-screen { background: #000; padding: 0; justify-content: center; gap: 0; width: 100%; height: 100%; position: relative; }
+        .tv-player-section:-webkit-full-screen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: 100vh; }
 
-        .tv-player-section:-webkit-full-screen { background: #000; padding: 0; justify-content: center; gap: 0; width: 100%; height: 100%; position: relative; }
-        .tv-player-section:-webkit-full-screen .tv-screen-container { border-radius: 0; border: none; height: 100vh; max-height: 100vh; }
-        .tv-player-section:-webkit-full-screen .controls-bar { 
-            position: absolute; bottom: 20px; right: 20px; width: auto; margin: 0; 
-            background: rgba(0,0,0,0.6); border: none; padding: 10px; border-radius: 8px; z-index: 10; 
-        }
-        .tv-player-section:-webkit-full-screen .controls-left { display: none; }
-        .tv-player-section:-webkit-full-screen #statusText { display: none; }
-        .tv-player-section:-webkit-full-screen .info-grid { display: none; }
+        .tv-player-section:fullscreen .controls-bar,
+        .tv-player-section:-webkit-full-screen .controls-bar { 
+            position: absolute; bottom: 20px; left: 20px; right: 20px; width: auto; margin: 0; 
+            background: rgba(15, 17, 30, 0.85); border: 1px solid rgba(255,255,255,0.1); 
+            padding: 10px 20px; border-radius: 8px; z-index: 10; 
+        }
+        .tv-player-section:fullscreen .controls-left,
+        .tv-player-section:-webkit-full-screen .controls-left { display: flex; }
+        
+        .tv-player-section:fullscreen .vu-meter-wrapper,
+        .tv-player-section:-webkit-full-screen .vu-meter-wrapper,
+        .tv-player-section:fullscreen .info-grid,
+        .tv-player-section:-webkit-full-screen .info-grid { display: none; }
 
-        /* CONTROLS BAR */
-        .controls-bar {
-            background: var(--tv-panel); 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 8px; padding: 12px 20px;
-            display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--tv-border);
-        }
-        .controls-left { display: flex; align-items: center; gap: 20px; }
-        
-        .play-btn {
-            background: var(--tv-accent); border: none; width: 45px; height: 45px; border-radius: 50%;
-            color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 42, 95, 0.4);
-        }
-        .play-btn:hover { background: var(--tv-accent-hover); transform: scale(1.05); }
+        /* CONTROLS BAR */
+        .controls-bar {
+            background: var(--tv-panel); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 8px; padding: 12px 20px;
+            display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--tv-border);
+        }
+        .controls-left { display: flex; align-items: center; gap: 20px; }
+        
+        .play-btn {
+            background: var(--tv-accent); border: none; width: 45px; height: 45px; border-radius: 50%;
+            color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 42, 95, 0.4);
+        }
+        .play-btn:hover { background: var(--tv-accent-hover); transform: scale(1.05); }
 
-        .volume-container { display: flex; align-items: center; gap: 10px; }
-        #volIcon { cursor: pointer; user-select: none; width: 22px; text-align: center; transition: transform 0.2s; }
-        .controls-right { display: flex; align-items: center; gap: 15px; }
-        #statusText { font-size: 0.85rem; font-weight: 500; color: var(--tv-text-muted); }
+        .volume-container { display: flex; align-items: center; gap: 10px; }
+        #volIcon { cursor: pointer; user-select: none; width: 22px; text-align: center; transition: transform 0.2s; }
+        #volIcon:hover { transform: scale(1.1); color: var(--tv-accent); }
+        
+        /* Modern Styled Volume Slider */
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+        body.light-mode .volume-slider { background: rgba(0, 0, 0, 0.2); }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--tv-accent);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .volume-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border: none;
+            border-radius: 50%;
+            background: var(--tv-accent);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .volume-slider::-webkit-slider-thumb:hover, .volume-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
 
-        /* INFO & ABOUT CARDS */
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
-        .card-panel { 
-            background: var(--tv-panel); 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 8px; padding: 20px; border: 1px solid var(--tv-border); 
-        }
-        .card-panel h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--tv-text); }
-        
-        .station-desc { font-size: 0.95rem; line-height: 1.6; color: var(--tv-text-muted); margin-bottom: 15px; }
-        .contact-email a { color: var(--tv-blue); text-decoration: none; font-weight: 500; }
-        .contact-email a:hover { text-decoration: underline; }
+        .controls-right { display: flex; align-items: center; gap: 15px; }
+        #statusText { font-size: 0.85rem; font-weight: 500; color: var(--tv-text-muted); }
 
-        .fb-wrapper { width: 100%; border-radius: 6px; overflow: hidden; background: #fff; min-height: 300px; }
+        /* --- VU METER STYLES --- */
+        .vu-meter-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            background: #25262a; /* Kapareho ng nasa larawan */
+            padding: 15px 30px;
+            border-radius: 8px;
+            border: 1px solid var(--tv-border);
+        }
 
-        /* RIGHT COLUMN: LIVE CHAT */
-        .chat-sidebar {
-            background: var(--tv-panel); 
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 8px; border: 1px solid var(--tv-border);
-            display: flex; flex-direction: column; height: calc(100vh - 110px); position: sticky; top: 90px;
-        }
-        .chat-header { padding: 15px; border-bottom: 1px solid var(--tv-border); display: flex; justify-content: space-between; align-items: center; }
-        .chat-header h2 { font-size: 1rem; font-weight: 700; }
-        .chat-header-status { font-size: 0.7rem; color: #4caf50; background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 4px; }
+        .analog-meter {
+            width: 140px;
+            height: 75px;
+            background: radial-gradient(ellipse at bottom, #fde4a9 0%, #dfb461 100%);
+            border-radius: 8px;
+            position: relative;
+            box-shadow: inset 0 6px 15px rgba(0, 0, 0, 0.5), inset 0 2px 5px rgba(0,0,0,0.3), 0 4px 10px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            border: 2px solid #1a1a1a;
+        }
 
-        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .chat-message { display: flex; flex-direction: column; gap: 4px; word-wrap: break-word; animation: fadeIn 0.3s ease; }
-        .chat-sender-name { font-size: 0.75rem; font-weight: 700; color: var(--tv-text-muted); }
-        .self .chat-sender-name { color: var(--tv-accent); text-align: right; }
-        
-        .chat-bubble {
-            background: var(--tv-border); padding: 10px 14px; border-radius: 8px 8px 8px 0;
-            font-size: 0.9rem; color: var(--tv-text); max-width: 90%; align-self: flex-start;
-        }
-        .self .chat-bubble { background: rgba(229, 9, 20, 0.15); border: 1px solid rgba(229, 9, 20, 0.3); border-radius: 8px 8px 0 8px; align-self: flex-end; }
-        
-        .chat-meta { font-size: 0.65rem; color: var(--tv-text-muted); display: flex; gap: 10px; align-items: center; margin-top: 2px; }
-        .self .chat-meta { justify-content: flex-end; }
+        .meter-scale {
+            position: absolute;
+            width: 100px;
+            height: 50px;
+            border-top: 2px solid rgba(0, 0, 0, 0.7);
+            border-radius: 50px 50px 0 0;
+            top: 15px;
+        }
 
-        .chat-input-area { padding: 15px; border-top: 1px solid var(--tv-border); display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; }
-        .chat-input {
-            width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid var(--tv-border);
-            background: rgba(0,0,0,0.25); color: var(--tv-text); font-family: inherit; font-size: 0.9rem; outline: none;
-        }
-        .chat-input:focus { border-color: var(--tv-accent); background: rgba(0,0,0,0.4); }
-        .input-row { display: flex; gap: 8px; }
-        
-        .send-btn {
-            background: var(--tv-accent); color: white; border: none; padding: 0 15px; border-radius: 4px;
-            font-weight: 600; cursor: pointer; transition: 0.2s;
-        }
-        .send-btn:hover { background: var(--tv-accent-hover); }
-        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* Pulang babala sa kanan ng metro */
+        .meter-scale::after {
+            content: '';
+            position: absolute;
+            right: -2px;
+            top: -2px;
+            width: 30px;
+            height: 30px;
+            border-top: 3px solid #e74c3c;
+            border-right: 3px solid #e74c3c;
+            border-radius: 0 50px 0 0;
+        }
 
-        /* Scrollbars */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--tv-bg); }
-        ::-webkit-scrollbar-thumb { background: var(--tv-border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--tv-text-muted); }
+        /* Guhit-guhit para sa metro */
+        .meter-scale::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(90deg, transparent 49%, rgba(0,0,0,0.6) 49%, rgba(0,0,0,0.6) 51%, transparent 51%);
+            background-size: 20px 10px;
+            background-repeat: repeat-x;
+            opacity: 0.4;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .needle {
+            width: 3px;
+            height: 60px;
+            background: #e74c3c;
+            position: absolute;
+            bottom: -5px;
+            transform-origin: bottom center;
+            transform: rotate(-45deg);
+            transition: transform 0.05s ease-out; /* Pinabilis para sumabay sa totoong kanta */
+            z-index: 2;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+            border-radius: 2px;
+        }
 
-        /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .tv-main-layout { grid-template-columns: 1fr; padding: 15px; }
-            .chat-sidebar { height: 500px; position: relative; top: 0; }
-            .info-grid { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 768px) {
-            header { padding: 10px 15px; flex-wrap: wrap; gap: 10px; }
-            .clock-container { display: none; }
-            .tv-screen-container { border-radius: 6px; }
-            .controls-bar { flex-direction: column; gap: 15px; align-items: flex-start; }
-            .controls-left { width: 100%; justify-content: space-between; }
-            
-            /* Sa Mobile fullscreen, kailangan naka-hide rin ang controls-left nang maayos */
-            .tv-player-section:-webkit-full-screen .controls-bar { flex-direction: row; }
-            .tv-player-section:fullscreen .controls-bar { flex-direction: row; }
-        }
-    </style>
+        .meter-pivot {
+            width: 28px;
+            height: 14px;
+            background: #111;
+            border-radius: 14px 14px 0 0;
+            position: absolute;
+            bottom: 0;
+            z-index: 3;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.5);
+        }
+
+        .led-dots {
+            display: flex;
+            gap: 12px;
+            padding-bottom: 5px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #3a3b40;
+            transition: background 0.05s, box-shadow 0.05s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Kulay ng LED */
+        .dot-pink.active { 
+            background: #ff0055; 
+            box-shadow: 0 0 10px #ff0055, 0 0 15px #ff0055; 
+        }
+        .dot-cyan.active { 
+            background: #00e5ff; 
+            box-shadow: 0 0 10px #00e5ff, 0 0 15px #00e5ff; 
+        }
+
+        /* INFO & ABOUT CARDS */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 5px; }
+        .card-panel { 
+            background: var(--tv-panel); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 8px; padding: 20px; border: 1px solid var(--tv-border); 
+        }
+        .card-panel h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--tv-text); }
+        
+        .station-desc { font-size: 0.95rem; line-height: 1.6; color: var(--tv-text-muted); margin-bottom: 15px; }
+        .contact-email a { color: var(--tv-blue); text-decoration: none; font-weight: 500; }
+        .contact-email a:hover { text-decoration: underline; }
+
+        .fb-wrapper { width: 100%; border-radius: 6px; overflow: hidden; background: #fff; min-height: 300px; }
+
+        /* RIGHT COLUMN: LIVE CHAT */
+        .chat-sidebar {
+            background: var(--tv-panel); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 8px; border: 1px solid var(--tv-border);
+            display: flex; flex-direction: column; height: calc(100vh - 110px); position: sticky; top: 90px;
+        }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--tv-border); display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { font-size: 1rem; font-weight: 700; }
+        .chat-header-status { font-size: 0.7rem; color: #4caf50; background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 4px; }
+
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-message { display: flex; flex-direction: column; gap: 4px; word-wrap: break-word; animation: fadeIn 0.3s ease; }
+        .chat-sender-name { font-size: 0.75rem; font-weight: 700; color: var(--tv-text-muted); }
+        .self .chat-sender-name { color: var(--tv-accent); text-align: right; }
+        
+        .chat-bubble {
+            background: var(--tv-border); padding: 10px 14px; border-radius: 8px 8px 8px 0;
+            font-size: 0.9rem; color: var(--tv-text); max-width: 90%; align-self: flex-start;
+        }
+        .self .chat-bubble { background: rgba(229, 9, 20, 0.15); border: 1px solid rgba(229, 9, 20, 0.3); border-radius: 8px 8px 0 8px; align-self: flex-end; }
+        
+        .chat-meta { font-size: 0.65rem; color: var(--tv-text-muted); display: flex; gap: 10px; align-items: center; margin-top: 2px; }
+        .self .chat-meta { justify-content: flex-end; }
+
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--tv-border); display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.1); border-radius: 0 0 8px 8px; }
+        .chat-input {
+            width: 100%; padding: 10px 12px; border-radius: 4px; border: 1px solid var(--tv-border);
+            background: rgba(0,0,0,0.25); color: var(--tv-text); font-family: inherit; font-size: 0.9rem; outline: none;
+        }
+        .chat-input:focus { border-color: var(--tv-accent); background: rgba(0,0,0,0.4); }
+        .input-row { display: flex; gap: 8px; }
+        
+        .send-btn {
+            background: var(--tv-accent); color: white; border: none; padding: 0 15px; border-radius: 4px;
+            font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .send-btn:hover { background: var(--tv-accent-hover); }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--tv-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--tv-border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--tv-text-muted); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .tv-main-layout { grid-template-columns: 1fr; padding: 15px; }
+            .chat-sidebar { height: 500px; position: relative; top: 0; }
+            .info-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            header { padding: 10px 15px; flex-wrap: wrap; gap: 10px; }
+            .clock-container { display: none; }
+            .tv-screen-container { border-radius: 6px; }
+            .controls-bar { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .controls-left { width: 100%; justify-content: space-between; }
+            
+            .tv-player-section:-webkit-full-screen .controls-bar { flex-direction: row; }
+            .tv-player-section:fullscreen .controls-bar { flex-direction: row; }
+            
+            /* INAYOS PARA SA MOBILE: Pinaliit nang tama ang mga sukat para mag-fit sa isang linya */
+            .vu-meter-wrapper { 
+                flex-wrap: nowrap; /* Pinapanatili sa iisang linya */
+                gap: 10px; 
+                padding: 12px 10px; 
+                justify-content: space-between;
+            }
+            .analog-meter { width: 110px; height: 60px; border-width: 1px; }
+            .meter-scale { width: 80px; height: 40px; top: 12px; }
+            .meter-scale::after { width: 20px; height: 20px; border-width: 2px; }
+            .needle { height: 50px; bottom: -3px; width: 2px; }
+            .meter-pivot { width: 20px; height: 10px; border-radius: 10px 10px 0 0; }
+            
+            .led-dots { gap: 6px; }
+            .dot { width: 8px; height: 8px; }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="preloader">
-        <div class="tv-loader"></div>
-        <div class="preloader-text" id="preloaderText">Loading Player...</div>
-        <div class="offline-message" id="offlineMessage">Network Offline</div>
-    </div>
+    <div id="preloader">
+        <div class="tv-loader"></div>
+        <div class="preloader-text" id="preloaderText">Loading Player...</div>
+        <div class="offline-message" id="offlineMessage">Network Offline</div>
+    </div>
 
-    <header>
-        <div class="brand">
-            <img src="441510909_122141243984227757_7243628959601385331_n (3).jpg" alt="Rhythm 101 Logo" class="station-logo" onerror="this.style.display='none'">
-            <h1>Rhythm 101 <span>TV</span></h1>
-        </div>
-        <div class="header-controls">
-            <div class="clock-container">
-                <div class="clock">
-                    <span class="clock-label">Local Time</span>
-                    <span class="clock-time" id="localTime">--:--:--</span>
-                </div>
-                <div class="clock" style="border-left: 1px solid var(--tv-border); padding-left: 15px;">
-                    <span class="clock-label">Philippines</span>
-                    <span class="clock-time" id="phTime">--:--:--</span>
-                </div>
-            </div>
-            <button id="themeToggle" class="theme-toggle" title="Toggle Theme">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            </button>
-        </div>
-    </header>
+    <header>
+        <div class="brand">
+            <img src="441510909_122141243984227757_7243628959601385331_n (3).jpg" alt="Rhythm 101 Logo" class="station-logo" onerror="this.style.display='none'">
+            <h1>Rhythm 101 <span>TV</span></h1>
+        </div>
+        <div class="header-controls">
+            <div class="clock-container">
+                <div class="clock">
+                    <span class="clock-label">Local Time</span>
+                    <span class="clock-time" id="localTime">--:--:--</span>
+                </div>
+                <div class="clock" style="border-left: 1px solid var(--tv-border); padding-left: 15px;">
+                    <span class="clock-label">Philippines</span>
+                    <span class="clock-time" id="phTime">--:--:--</span>
+                </div>
+            </div>
+            <button id="themeToggle" class="theme-toggle" title="Toggle Theme">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+        </div>
+    </header>
 
-    <main class="tv-main-layout" id="mainAppContent">
-        
-        <!-- LEFT COLUMN: TV PLAYER -->
-        <div class="tv-player-section" id="playerContainer">
-            
-            <!-- WEB SCREEN -->
-            <div class="tv-screen-container">
-                
-                <!-- Twitch Video Container -->
-                <div id="videoStream" class="tv-video"></div>
+    <main class="tv-main-layout" id="mainAppContent">
+        
+        <!-- LEFT COLUMN: TV PLAYER -->
+        <div class="tv-player-section" id="playerContainer">
+            
+            <!-- WEB SCREEN -->
+            <div class="tv-screen-container">
+                
+                <!-- Twitch Video Container -->
+                <div id="videoStream" class="tv-video"></div>
 
-                <!-- Standard Offline Screen -->
-                <div id="noSignalOverlay" class="no-signal-overlay active">
-                    <h2>NO SIGNAL</h2>
-                    <p>Broadcast is currently offline.</p>
-                </div>
-            </div>
+                <!-- DIRECT ZENO.FM AUDIO STREAM (For real VU meter sync) -->
+                <!-- Naka-crossorigin anonymous para ma-analyze ng Web Audio API -->
+                <audio id="zenoAudioStream" crossorigin="anonymous" src="https://stream.zeno.fm/kpbamsatoqxtv" style="display:none;"></audio>
 
-            <!-- CONTROLS -->
-            <div class="controls-bar">
-                <div class="controls-left">
-                    <button class="play-btn" id="playBtn">
-                        <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                        <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    </button>
-                    <div class="volume-container">
-                        <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
-                    </div>
-                </div>
-                <div class="controls-right">
-                    <div id="statusText">Ready</div>
-                    <button id="fullscreenBtn" class="theme-toggle" title="Toggle Full Screen" style="border: none;">
-                        <svg id="expandIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                        </svg>
-                        <svg id="compressIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-                            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+                <!-- Standard Offline Screen -->
+                <div id="noSignalOverlay" class="no-signal-overlay active">
+                    <h2>NO SIGNAL</h2>
+                    <p>Broadcast is currently offline.</p>
+                </div>
+            </div>
 
-            <div class="info-grid">
-                <div class="card-panel">
-                    <h2>About The Station</h2>
-                    <p class="station-desc">
-                        Welcome to Rhythm 101, the premier online visual radio station broadcasting live from the beautiful Bicol Region in the Philippines. We are your number one source for essential music videos, live entertainment, and the latest hits. Tune in and drop a request in the live chat!
-                    </p>
-                    <div class="contact-email">
-                        Business & Inquiries: <a href="mailto:rhythm101fm@gmail.com">rhythm101fm@gmail.com</a>
-                    </div>
-                </div>
-                
-                <div class="card-panel" style="padding: 10px;">
-                    <div class="fb-wrapper">
-                        <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FRHYTHM101FM&tabs=timeline&width=340&height=300&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
+            <!-- CONTROLS -->
+            <div class="controls-bar">
+                <div class="controls-left">
+                    <button class="play-btn" id="playBtn">
+                        <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <div class="volume-container">
+                        <svg id="volIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                        <input type="range" id="volumeControl" class="volume-slider" min="0" max="1" step="0.05" value="1">
+                    </div>
+                </div>
+                <div class="controls-right">
+                    <div id="statusText">Ready</div>
+                    <button id="fullscreenBtn" class="theme-toggle" title="Toggle Full Screen" style="border: none;">
+                        <svg id="expandIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                        <svg id="compressIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-        <aside class="chat-sidebar">
-            <div class="chat-header">
-                <h2 id="chatTitle" title="Double-click for Admin Access" style="cursor: pointer;">Live Requests</h2>
-                <span class="chat-header-status" id="chatStatusText">● Connecting...</span>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div style="opacity: 0.5; text-align: center; font-size: 0.8rem; margin: auto;">Connecting to chat...</div>
-            </div>
+            <!-- VU METER -->
+            <div class="vu-meter-wrapper">
+                <!-- Left Meter -->
+                <div class="analog-meter">
+                    <div class="meter-scale"></div>
+                    <div class="needle" id="needleL"></div>
+                    <div class="meter-pivot"></div>
+                </div>
+                
+                <!-- LED Array -->
+                <div class="led-dots" id="ledContainer">
+                    <span class="dot dot-pink"></span>
+                    <span class="dot dot-cyan"></span>
+                    <span class="dot dot-pink"></span>
+                    <span class="dot dot-cyan"></span>
+                    <span class="dot dot-pink"></span>
+                    <span class="dot dot-cyan"></span>
+                    <span class="dot dot-pink"></span>
+                </div>
+            
+                <!-- Right Meter -->
+                <div class="analog-meter">
+                    <div class="meter-scale"></div>
+                    <div class="needle" id="needleR"></div>
+                    <div class="meter-pivot"></div>
+                </div>
+            </div>
 
-            <div class="chat-input-area">
-                <input type="text" id="chatName" class="chat-input" placeholder="Your Full Name (First & Last)" maxlength="50">
-                <div class="input-row">
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Type a song/video request..." autocomplete="off">
-                    <button id="sendBtn" class="send-btn">Send</button>
-                </div>
-                <div style="font-size: 0.65rem; color: var(--tv-text-muted); text-align: center;">
-                    Messages auto-delete after 24 hours.
-                </div>
-            </div>
-        </aside>
+            <div class="info-grid">
+                <div class="card-panel">
+                    <h2>About The Station</h2>
+                    <p class="station-desc">
+                        Welcome to Rhythm 101, the premier online visual radio station broadcasting live from the beautiful Bicol Region in the Philippines. We are your number one source for essential music videos, live entertainment, and the latest hits. Tune in and drop a request in the live chat!
+                    </p>
+                    <div class="contact-email">
+                        Business & Inquiries: <a href="mailto:rhythm101fm@gmail.com">rhythm101fm@gmail.com</a>
+                    </div>
+                </div>
+                
+                <div class="card-panel" style="padding: 10px;">
+                    <div class="fb-wrapper">
+                        <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FRHYTHM101FM&tabs=timeline&width=340&height=300&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" width="100%" height="100%" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    </main>
+        <aside class="chat-sidebar">
+            <div class="chat-header">
+                <h2 id="chatTitle" title="Double-click for Admin Access" style="cursor: pointer;">Live Requests</h2>
+                <span class="chat-header-status" id="chatStatusText">● Connecting...</span>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div style="opacity: 0.5; text-align: center; font-size: 0.8rem; margin: auto;">Connecting to chat...</div>
+            </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+            <div class="chat-input-area">
+                <input type="text" id="chatName" class="chat-input" placeholder="Your Full Name (First & Last)" maxlength="50">
+                <div class="input-row">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Type a song/video request..." autocomplete="off">
+                    <button id="sendBtn" class="send-btn">Send</button>
+                </div>
+                <div style="font-size: 0.65rem; color: var(--tv-text-muted); text-align: center;">
+                    Messages auto-delete after 24 hours.
+                </div>
+            </div>
+        </aside>
 
-        // =========================================================================
-        // 🌐 PERMANENT INTERNET TV CONFIGURATION (TWITCH ENGINE) 🌐
-        // =========================================================================
-        const TWITCH_CHANNEL = "neilelethrix"; 
-        const YOUR_WEBSITE_DOMAIN = "rhythm101tv.devcoderz.site"; 
-        // =========================================================================
+    </main>
 
-        // --- PRELOADER AND INTERNET LOGIC ---
-        const preloader = document.getElementById('preloader');
-        const mainContent = document.getElementById('mainAppContent');
-        const preloaderText = document.getElementById('preloaderText');
-        const offlineMessage = document.getElementById('offlineMessage');
-        const loaderAnim = document.querySelector('.tv-loader');
-        let isWindowLoaded = false;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        function checkInternetConnection() {
-            if (!navigator.onLine) {
-                loaderAnim.style.display = 'none';
-                preloaderText.style.display = 'none';
-                offlineMessage.style.display = 'block';
-            } else {
-                loaderAnim.style.display = 'block';
-                preloaderText.style.display = 'block';
-                offlineMessage.style.display = 'none';
-                if (isWindowLoaded) {
-                    setTimeout(() => {
-                        preloader.classList.add('hidden');
-                        mainContent.classList.add('show-content'); 
-                    }, 800); 
-                }
-            }
-        }
-        window.addEventListener('load', () => { isWindowLoaded = true; checkInternetConnection(); });
-        window.addEventListener('online', checkInternetConnection);
-        window.addEventListener('offline', checkInternetConnection);
+        // =========================================================================
+        // 🌐 PERMANENT INTERNET TV CONFIGURATION (TWITCH ENGINE) 🌐
+        // =========================================================================
+        const TWITCH_CHANNEL = "neilelethrix"; 
+        const YOUR_WEBSITE_DOMAIN = "rhythm101tv.devcoderz.site"; 
+        // =========================================================================
 
-        // --- THEME LOGIC ---
-        const themeToggleBtn = document.getElementById('themeToggle');
-        if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); }
-        themeToggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('light-mode');
-            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
-        });
+        // --- PRELOADER AND INTERNET LOGIC ---
+        const preloader = document.getElementById('preloader');
+        const mainContent = document.getElementById('mainAppContent');
+        const preloaderText = document.getElementById('preloaderText');
+        const offlineMessage = document.getElementById('offlineMessage');
+        const loaderAnim = document.querySelector('.tv-loader');
+        let isWindowLoaded = false;
 
-        // --- TWITCH NATIVE PLAYER INTEGRATION ---
-        const playBtn = document.getElementById('playBtn');
-        const playIcon = document.getElementById('playIcon');
-        const pauseIcon = document.getElementById('pauseIcon');
-        const container = document.getElementById('playerContainer');
-        const statusText = document.getElementById('statusText');
-        const volumeControl = document.getElementById('volumeControl');
-        const noSignalOverlay = document.getElementById('noSignalOverlay');
-        
-        let twitchPlayer;
+        function checkInternetConnection() {
+            if (!navigator.onLine) {
+                loaderAnim.style.display = 'none';
+                preloaderText.style.display = 'none';
+                offlineMessage.style.display = 'block';
+            } else {
+                loaderAnim.style.display = 'block';
+                preloaderText.style.display = 'block';
+                offlineMessage.style.display = 'none';
+                if (isWindowLoaded) {
+                    setTimeout(() => {
+                        preloader.classList.add('hidden');
+                        mainContent.classList.add('show-content'); 
+                    }, 800); 
+                }
+            }
+        }
+        window.addEventListener('load', () => { isWindowLoaded = true; checkInternetConnection(); });
+        window.addEventListener('online', checkInternetConnection);
+        window.addEventListener('offline', checkInternetConnection);
 
-        function initTwitchPlayer() {
-            var options = {
-                width: "100%",
-                height: "100%",
-                channel: TWITCH_CHANNEL,
-                parent: [YOUR_WEBSITE_DOMAIN, "localhost", "127.0.0.1"],
-                controls: false
-            };
-            
-            twitchPlayer = new Twitch.Player("videoStream", options);
+        // --- THEME LOGIC ---
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); }
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        });
 
-            twitchPlayer.addEventListener(Twitch.Player.READY, () => {
-                twitchPlayer.setVolume(1.0);
-                statusText.innerText = "Ready to Play";
-            });
+        // --- TWITCH PLAYER, ZENO STREAM & TOTOONG VU METER ---
+        const playBtn = document.getElementById('playBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const container = document.getElementById('playerContainer');
+        const statusText = document.getElementById('statusText');
+        const volumeControl = document.getElementById('volumeControl');
+        const volIcon = document.getElementById('volIcon');
+        const noSignalOverlay = document.getElementById('noSignalOverlay');
+        
+        // Audio and Web Audio API Variables
+        const zenoAudioStream = document.getElementById('zenoAudioStream');
+        let audioCtx, analyser, dataArray;
+        let isWebAudioInitialized = false;
 
-            twitchPlayer.addEventListener(Twitch.Player.ONLINE, () => {
-                statusText.innerText = "Stream is Live! Press Play.";
-                noSignalOverlay.classList.remove('active'); 
-            });
+        // VU Meter Elements
+        const needleL = document.getElementById('needleL');
+        const needleR = document.getElementById('needleR');
+        const dots = document.querySelectorAll('.dot');
+        
+        let twitchPlayer;
+        let isStreamPlaying = false;
+        let currentVolumeLevel = 1.0;
+        let previousVolumeLevel = 1.0;
+        
+        let smoothedLevelL = 0;
+        let smoothedLevelR = 0;
 
-            twitchPlayer.addEventListener(Twitch.Player.PLAYING, () => {
-                playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
-                container.classList.add('playing'); statusText.innerText = "Playing Live";
-                noSignalOverlay.classList.remove('active');
-            });
+        // Web Audio API Initialization
+        function initWebAudio() {
+            if (isWebAudioInitialized) return;
+            try {
+                // Initialize audio context
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                
+                // FFT Size (mas maliit, mas mabilis ang response ng meter)
+                analyser.fftSize = 64; 
+                
+                // Ikonekta ang Zeno stream sa analyzer at sa speakers
+                const source = audioCtx.createMediaElementSource(zenoAudioStream);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                isWebAudioInitialized = true;
+                
+                // Simulan ang animation loop
+                requestAnimationFrame(updateVUMeter);
+            } catch (e) {
+                console.error("Web Audio API Error:", e);
+            }
+        }
 
-            twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
-                playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
-                container.classList.remove('playing'); statusText.innerText = "Paused";
-            });
-            
-            twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
-                statusText.innerText = "Offline"; container.classList.remove('playing');
-                playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
-                noSignalOverlay.classList.add('active');
-            });
-        }
-        
-        initTwitchPlayer();
+        // TOTOONG AUDIO ANALYSIS: Binabasa nito ang kanta mula sa Zeno.fm
+        function updateVUMeter() {
+            if (!isStreamPlaying || !analyser) {
+                needleL.style.transform = `rotate(-45deg)`;
+                needleR.style.transform = `rotate(-45deg)`;
+                dots.forEach(dot => dot.classList.remove('active'));
+                smoothedLevelL = 0;
+                smoothedLevelR = 0;
+                requestAnimationFrame(updateVUMeter);
+                return;
+            }
 
-        // 2. Connect Custom Controls to the Twitch Player
-        function updateVolumeUI(vol) {
-            volumeControl.value = vol;
-        }
+            // Kunin ang tunay na frequency data mula sa Zeno Stream
+            analyser.getByteFrequencyData(dataArray);
+            
+            let sumL = 0;
+            let sumR = 0;
+            const halfLength = Math.floor(dataArray.length / 2);
 
-        volumeControl.addEventListener('input', (e) => {
-            const vol = parseFloat(e.target.value);
-            if (twitchPlayer) {
-                twitchPlayer.setMuted(vol === 0);
-                twitchPlayer.setVolume(vol);
-            }
-            updateVolumeUI(vol);
-        });
+            // Hinahati natin ang frequency (Lower para sa left, Higher para sa right)
+            for (let i = 0; i < halfLength; i++) {
+                sumL += dataArray[i];
+            }
+            for (let i = halfLength; i < dataArray.length; i++) {
+                sumR += dataArray[i];
+            }
 
-        playBtn.addEventListener('click', () => {
-            if (!twitchPlayer) {
-                alert("Player is loading. Please wait.");
-                return;
-            }
+            let avgL = sumL / halfLength;
+            let avgR = sumR / (dataArray.length - halfLength);
 
-            if (!container.classList.contains('playing')) {
-                statusText.innerText = "Connecting...";
-                twitchPlayer.play();
-            } else {
-                twitchPlayer.pause();
-            }
-        });
+            // Normalize (0 hanggang 1) at lagyan ng multiplier para mas malakas ang sipa
+            let rawL = Math.min(1, (avgL / 255) * 1.8);
+            let rawR = Math.min(1, (avgR / 255) * 2.0); // Treble usually needs more boost
 
-        // --- FULLSCREEN LOGIC ---
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const playerSection = document.getElementById('playerContainer');
-        const expandIcon = document.getElementById('expandIcon');
-        const compressIcon = document.getElementById('compressIcon');
+            // FIX: FALLBACK SIMULATION kapag naharangan ng CORS ang Web Audio API
+            if (sumL + sumR === 0) {
+                const now = Date.now();
+                const beatWave = Math.sin(now / 180); 
+                const beatPeak = Math.pow(beatWave, 4);
+                const noise = Math.random() * 0.3;
+                const sim = Math.min(1, (beatPeak * 0.6) + noise + 0.1);
+                rawL = sim;
+                rawR = sim + (Math.random() * 0.1 - 0.05);
+            }
 
-        // Listen for changes (e.g. if the user presses 'Esc' key) to correctly update the button icons
-        function updateFullscreenIcons() {
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-            if (isFullscreen) {
-                expandIcon.style.display = 'none';
-                compressIcon.style.display = 'block';
-            } else {
-                expandIcon.style.display = 'block';
-                compressIcon.style.display = 'none';
-            }
-        }
+            // I-apply ang volume level ng user
+            const targetL = rawL * currentVolumeLevel;
+            const targetR = rawR * currentVolumeLevel;
 
-        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(
-            eventName => document.addEventListener(eventName, updateFullscreenIcons)
-        );
+            // Smoothing para mukhang analog (hindi masyadong pautal-utal)
+            smoothedLevelL += (targetL - smoothedLevelL) * 0.35;
+            smoothedLevelR += (targetR - smoothedLevelR) * 0.35;
 
-        fullscreenBtn.addEventListener('click', () => {
-            // Check cross-browser variable to see if we are already in fullscreen
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-            
-            if (!isFullscreen) {
-                if (playerSection.requestFullscreen) {
-                    playerSection.requestFullscreen();
-                } else if (playerSection.webkitRequestFullscreen) {
-                    playerSection.webkitRequestFullscreen();
-                } else if (playerSection.msRequestFullscreen) {
-                    playerSection.msRequestFullscreen();
-                }
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) {
-                    document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) {
-                    document.msExitFullscreen();
-                }
-            }
-        });
+            // Clamp values
+            const valL = Math.max(0, Math.min(1, smoothedLevelL));
+            const valR = Math.max(0, Math.min(1, smoothedLevelR));
 
-        // --- CLOCKS ---
-        function updateClocks() {
-            const now = new Date();
-            document.getElementById('localTime').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('phTime').innerText = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
-        setInterval(updateClocks, 1000); updateClocks();
+            // I-convert ang value sa anggulo ng karayom (-45deg to +45deg)
+            const angleL = -45 + (valL * 90);
+            const angleR = -45 + (valR * 90);
 
-        // --- FIREBASE CHATBOX LOGIC ---
-        // ⚠️ PASTE YOUR NEW FIREBASE CONFIGURATION BELOW ⚠️
-        const myFirebaseConfig = {
-            apiKey: "AIzaSyDexzokLhiM4TU1TBB8uHVg-jFYCxcBRsE",
-            authDomain: "rhythm-101-tv.firebaseapp.com",
-            projectId: "rhythm-101-tv",
-            storageBucket: "rhythm-101-tv.firebasestorage.app",
-            messagingSenderId: "80313570040",
-            appId: "1:80313570040:web:0b822ecac5055d070e610d",
-            measurementId: "G-Z72HLBZYEM"
-        };
+            needleL.style.transform = `rotate(${angleL}deg)`;
+            needleR.style.transform = `rotate(${angleR}deg)`;
 
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
-        
-        const chatMessagesEl = document.getElementById('chatMessages');
-        const chatName = document.getElementById('chatName');
-        const chatInput = document.getElementById('chatInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatTitle = document.getElementById('chatTitle');
-        const chatStatusText = document.getElementById('chatStatusText');
-        
-        let currentUser = null;
-        let unsubscribeMessages = null;
-        let currentMessages = [];
-        let isAdmin = localStorage.getItem('rhythmAdmin') === 'true';
+            // Pailawin ang mga LED base sa average
+            const avgVal = (valL + valR) / 2;
+            const activeDots = Math.floor(avgVal * dots.length * 1.3); 
+            
+            dots.forEach((dot, index) => {
+                if (index < activeDots) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
 
-        chatTitle.addEventListener('dblclick', () => {
-            if (!isAdmin) {
-                const pwd = prompt("Enter Admin Password to enable deletion:");
-                if (pwd === "rhythm101") { 
-                    isAdmin = true; localStorage.setItem('rhythmAdmin', 'true');
-                    alert("Admin mode enabled. You can now delete messages.");
-                    renderMessages(currentMessages);
-                } else if (pwd !== null) alert("Incorrect password.");
-            } else {
-                if (confirm("Disable Admin mode?")) {
-                    isAdmin = false; localStorage.removeItem('rhythmAdmin');
-                    renderMessages(currentMessages);
-                }
-            }
-        });
+            requestAnimationFrame(updateVUMeter);
+        }
 
-        if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
-            chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Offline</b><br>Database not connected.</div>';
-            chatInput.disabled = true; sendBtn.disabled = true;
-            chatStatusText.innerText = "● Disconnected";
-            chatStatusText.style.color = "var(--tv-accent)";
-        } else {
-            const app = initializeApp(firebaseConfig);
-            
-            // Initialize Firebase Analytics
-            if (firebaseConfig.measurementId) {
-                const analytics = getAnalytics(app);
-            }
-            
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'rhythm-101-radio';
+        function initTwitchPlayer() {
+            var options = {
+                width: "100%",
+                height: "100%",
+                channel: TWITCH_CHANNEL,
+                parent: [YOUR_WEBSITE_DOMAIN, "localhost", "127.0.0.1"],
+                controls: false
+            };
+            
+            twitchPlayer = new Twitch.Player("videoStream", options);
 
-            const initAuth = async () => {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    console.error("Firebase Auth Error:", error);
-                    chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Authentication Failed</b><br><br><span style="font-size:0.8rem; color:var(--tv-text-muted);">Please make sure "Anonymous Sign-In" is enabled in your Firebase Authentication settings.</span></div>';
-                    chatStatusText.innerText = "● Auth Error";
-                    chatStatusText.style.color = "var(--tv-accent)";
-                }
-            };
+            twitchPlayer.addEventListener(Twitch.Player.READY, () => {
+                // FIX: SIGURADUHING NAKA-MUTE ANG TWITCH VIDEO! 
+                twitchPlayer.setVolume(0); 
+                twitchPlayer.setMuted(true);
+                zenoAudioStream.volume = currentVolumeLevel;
+                statusText.innerText = "Ready to Play";
+            });
 
-            onAuthStateChanged(auth, (user) => {
-                currentUser = user;
-                if (user) {
-                    chatStatusText.innerText = "● Connected";
-                    chatStatusText.style.color = "#4caf50";
-                    subscribeToMessages();
-                    chatInput.disabled = false; sendBtn.disabled = false;
-                } else {
-                    if(unsubscribeMessages) unsubscribeMessages();
-                    // Prevent overwriting error messages if authentication fails
-                    if (!chatStatusText.innerText.includes("Error")) {
-                        chatStatusText.innerText = "● Disconnected";
-                        chatStatusText.style.color = "var(--tv-text-muted)";
-                    }
-                }
-            });
+            twitchPlayer.addEventListener(Twitch.Player.ONLINE, () => {
+                statusText.innerText = "Stream is Live! Press Play.";
+                noSignalOverlay.classList.remove('active'); 
+            });
 
-            function subscribeToMessages() {
-                if (!currentUser) return;
-                const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'requests');
-                
-                unsubscribeMessages = onSnapshot(messagesRef, (snapshot) => {
-                    const now = Date.now();
-                    const oneDayMs = 24 * 60 * 60 * 1000;
-                    const messages = [];
+            twitchPlayer.addEventListener(Twitch.Player.PLAYING, () => {
+                // FIX: Itodo ang pagka-mute sa twitch pag nag-play uli
+                twitchPlayer.setVolume(0); 
+                twitchPlayer.setMuted(true);
 
-                    snapshot.forEach(docSnap => {
-                        const data = docSnap.data();
-                        if (now - data.timestamp > oneDayMs) {
-                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', docSnap.id)).catch(e => console.error(e));
-                        } else {
-                            messages.push({ id: docSnap.id, ...data });
-                        }
-                    });
+                playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
+                container.classList.add('playing'); statusText.innerText = "Playing Live";
+                noSignalOverlay.classList.remove('active');
+                isStreamPlaying = true;
+            });
 
-                    messages.sort((a, b) => a.timestamp - b.timestamp);
-                    currentMessages = messages;
-                    renderMessages(currentMessages);
-                }, (error) => {
-                    console.error("Error fetching messages:", error);
-                    chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Database Connection Error</b><br><br><span style="font-size:0.8rem; color:var(--tv-text-muted);">Make sure your Firestore Database rules allow read/write access.</span></div>';
-                    chatStatusText.innerText = "● DB Error";
-                    chatStatusText.style.color = "var(--tv-accent)";
-                });
-            }
+            twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
+                playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+                container.classList.remove('playing'); statusText.innerText = "Paused";
+                isStreamPlaying = false;
+            });
+            
+            twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
+                statusText.innerText = "Offline"; container.classList.remove('playing');
+                playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+                noSignalOverlay.classList.add('active');
+                isStreamPlaying = false;
+            });
+        }
+        
+        initTwitchPlayer();
 
-            function renderMessages(messages) {
-                if (messages.length === 0) {
-                    chatMessagesEl.innerHTML = '<div style="opacity: 0.5; text-align: center; margin: auto;">No active requests yet. Be the first!</div>';
-                    return;
-                }
+        function updateVolumeUI(vol) {
+            volumeControl.value = vol;
+        }
 
-                chatMessagesEl.innerHTML = '';
-                messages.forEach(msg => {
-                    const isSelf = currentUser && msg.userId === currentUser.uid;
-                    
-                    const wrapper = document.createElement('div');
-                    wrapper.className = `chat-message ${isSelf ? 'self' : 'other'}`;
-                    
-                    if (msg.name) {
-                        const nameDiv = document.createElement('div');
-                        nameDiv.className = 'chat-sender-name';
-                        nameDiv.textContent = isSelf ? 'You' : msg.name;
-                        wrapper.appendChild(nameDiv);
-                    }
+        volIcon.addEventListener('click', () => {
+            if (currentVolumeLevel > 0) {
+                previousVolumeLevel = currentVolumeLevel;
+                currentVolumeLevel = 0;
+            } else {
+                currentVolumeLevel = previousVolumeLevel || 1;
+            }
+            
+            // I-apply lang ang volume sa Zeno Stream
+            zenoAudioStream.volume = currentVolumeLevel;
+            
+            // FIX: SIGURADUHING HINDI MA-U-UNMUTE ANG TWITCH PLAYER
+            if (twitchPlayer) {
+                twitchPlayer.setMuted(true);
+                twitchPlayer.setVolume(0);
+            }
+            
+            updateVolumeUI(currentVolumeLevel);
+        });
 
-                    const bubble = document.createElement('div');
-                    bubble.className = 'chat-bubble';
-                    bubble.textContent = msg.text; 
+        volumeControl.addEventListener('input', (e) => {
+            const vol = parseFloat(e.target.value);
+            currentVolumeLevel = vol; 
+            
+            // I-apply lang ang volume sa Zeno Stream
+            zenoAudioStream.volume = vol;
+            
+            // FIX: SIGURADUHING HINDI MA-U-UNMUTE ANG TWITCH PLAYER
+            if (twitchPlayer) {
+                twitchPlayer.setMuted(true);
+                twitchPlayer.setVolume(0);
+            }
 
-                    const metaDiv = document.createElement('div');
-                    metaDiv.className = 'chat-meta';
+            updateVolumeUI(vol);
+        });
 
-                    const timeSpan = document.createElement('span');
-                    const date = new Date(msg.timestamp);
-                    timeSpan.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    metaDiv.appendChild(timeSpan);
+        playBtn.addEventListener('click', () => {
+            if (!twitchPlayer) {
+                alert("Player is loading. Please wait.");
+                return;
+            }
 
-                    if (isAdmin) {
-                        const delBtn = document.createElement('span');
-                        delBtn.textContent = '🗑️';
-                        delBtn.style.cursor = 'pointer';
-                        delBtn.title = "Delete Request";
-                        delBtn.onclick = async () => {
-                            if(confirm("Delete this request?")) {
-                                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', msg.id)); } 
-                                catch(e) { alert("Failed to delete message."); }
-                            }
-                        };
-                        metaDiv.appendChild(delBtn);
-                    }
+            initWebAudio();
 
-                    wrapper.appendChild(bubble);
-                    wrapper.appendChild(metaDiv);
-                    chatMessagesEl.appendChild(wrapper);
-                });
-                
-                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-            }
+            // Resume audio context if the browser suspended it
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
 
-            async function handleSendMessage() {
-                const text = chatInput.value.trim();
-                const name = chatName.value.trim();
-                
-                // Relaxed name validation to prevent the chat from blocking single names
-                if (name.length < 2) {
-                    chatName.style.borderColor = 'var(--tv-accent)';
-                    chatName.value = '';
-                    chatName.placeholder = 'Name required!';
-                    alert("Please enter a display name to send a request.");
-                    chatName.focus();
-                    return;
-                } else {
-                    chatName.style.borderColor = 'var(--tv-border)';
-                    localStorage.setItem('rhythmChatName', name);
-                }
+            if (!container.classList.contains('playing')) {
+                statusText.innerText = "Connecting...";
+                // FIX: Force twitch mute bago mag-play
+                twitchPlayer.setMuted(true);
+                twitchPlayer.setVolume(0);
+                
+                twitchPlayer.play();
+                zenoAudioStream.play().catch(e => console.error("Zeno Stream Play Error: ", e));
+                isStreamPlaying = true;
+            } else {
+                twitchPlayer.pause();
+                zenoAudioStream.pause();
+                isStreamPlaying = false;
+            }
+        });
 
-                if (!text || !currentUser) return;
-                
-                chatInput.value = ''; 
-                
-                try {
-                    const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'requests');
-                    await addDoc(messagesRef, {
-                        text: text, name: name, timestamp: Date.now(), userId: currentUser.uid
-                    });
-                } catch (error) {
-                    alert("Could not send request. Please try again.");
-                }
-            }
+        // --- FULLSCREEN LOGIC ---
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const playerSection = document.getElementById('playerContainer');
+        const expandIcon = document.getElementById('expandIcon');
+        const compressIcon = document.getElementById('compressIcon');
 
-            sendBtn.addEventListener('click', handleSendMessage);
-            chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+        function updateFullscreenIcons() {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            if (isFullscreen) {
+                expandIcon.style.display = 'none';
+                compressIcon.style.display = 'block';
+            } else {
+                expandIcon.style.display = 'block';
+                compressIcon.style.display = 'none';
+            }
+        }
 
-            chatName.value = localStorage.getItem('rhythmChatName') || '';
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(
+            eventName => document.addEventListener(eventName, updateFullscreenIcons)
+        );
 
-            initAuth();
-        }
-    </script>
+        fullscreenBtn.addEventListener('click', () => {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            
+            if (!isFullscreen) {
+                if (playerSection.requestFullscreen) {
+                    playerSection.requestFullscreen();
+                } else if (playerSection.webkitRequestFullscreen) {
+                    playerSection.webkitRequestFullscreen();
+                } else if (playerSection.msRequestFullscreen) {
+                    playerSection.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        });
+
+        // --- CLOCKS ---
+        function updateClocks() {
+            const now = new Date();
+            document.getElementById('localTime').innerText = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('phTime').innerText = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateClocks, 1000); updateClocks();
+
+        // --- FIREBASE CHATBOX LOGIC ---
+        const myFirebaseConfig = {
+            apiKey: "AIzaSyDexzokLhiM4TU1TBB8uHVg-jFYCxcBRsE",
+            authDomain: "rhythm-101-tv.firebaseapp.com",
+            projectId: "rhythm-101-tv",
+            storageBucket: "rhythm-101-tv.firebasestorage.app",
+            messagingSenderId: "80313570040",
+            appId: "1:80313570040:web:0b822ecac5055d070e610d",
+            measurementId: "G-Z72HLBZYEM"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : myFirebaseConfig;
+        
+        const chatMessagesEl = document.getElementById('chatMessages');
+        const chatName = document.getElementById('chatName');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatTitle = document.getElementById('chatTitle');
+        const chatStatusText = document.getElementById('chatStatusText');
+        
+        let currentUser = null;
+        let unsubscribeMessages = null;
+        let currentMessages = [];
+        let isAdmin = localStorage.getItem('rhythmAdmin') === 'true';
+
+        chatTitle.addEventListener('dblclick', () => {
+            if (!isAdmin) {
+                const pwd = prompt("Enter Admin Password to enable deletion:");
+                if (pwd === "rhythm101") { 
+                    isAdmin = true; localStorage.setItem('rhythmAdmin', 'true');
+                    alert("Admin mode enabled. You can now delete messages.");
+                    renderMessages(currentMessages);
+                } else if (pwd !== null) alert("Incorrect password.");
+            } else {
+                if (confirm("Disable Admin mode?")) {
+                    isAdmin = false; localStorage.removeItem('rhythmAdmin');
+                    renderMessages(currentMessages);
+                }
+            }
+        });
+
+        if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "YOUR_API_KEY") {
+            chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Offline</b><br>Database not connected.</div>';
+            chatInput.disabled = true; sendBtn.disabled = true;
+            chatStatusText.innerText = "● Disconnected";
+            chatStatusText.style.color = "var(--tv-accent)";
+        } else {
+            const app = initializeApp(firebaseConfig);
+            
+            if (firebaseConfig.measurementId) {
+                const analytics = getAnalytics(app);
+            }
+            
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'rhythm-101-radio';
+
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Firebase Auth Error:", error);
+                    chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Chat Authentication Failed</b><br><br><span style="font-size:0.8rem; color:var(--tv-text-muted);">Please make sure "Anonymous Sign-In" is enabled in your Firebase Authentication settings.</span></div>';
+                    chatStatusText.innerText = "● Auth Error";
+                    chatStatusText.style.color = "var(--tv-accent)";
+                }
+            };
+
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    chatStatusText.innerText = "● Connected";
+                    chatStatusText.style.color = "#4caf50";
+                    subscribeToMessages();
+                    chatInput.disabled = false; sendBtn.disabled = false;
+                } else {
+                    if(unsubscribeMessages) unsubscribeMessages();
+                    if (!chatStatusText.innerText.includes("Error")) {
+                        chatStatusText.innerText = "● Disconnected";
+                        chatStatusText.style.color = "var(--tv-text-muted)";
+                    }
+                }
+            });
+
+            function subscribeToMessages() {
+                if (!currentUser) return;
+                const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'requests');
+                
+                unsubscribeMessages = onSnapshot(messagesRef, (snapshot) => {
+                    const now = Date.now();
+                    const oneDayMs = 24 * 60 * 60 * 1000;
+                    const messages = [];
+
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (now - data.timestamp > oneDayMs) {
+                            deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', docSnap.id)).catch(e => console.error(e));
+                        } else {
+                            messages.push({ id: docSnap.id, ...data });
+                        }
+                    });
+
+                    messages.sort((a, b) => a.timestamp - b.timestamp);
+                    currentMessages = messages;
+                    renderMessages(currentMessages);
+                }, (error) => {
+                    console.error("Error fetching messages:", error);
+                    chatMessagesEl.innerHTML = '<div style="color:var(--tv-accent); text-align:center; padding: 20px;">⚠️ <b>Database Connection Error</b><br><br><span style="font-size:0.8rem; color:var(--tv-text-muted);">Make sure your Firestore Database rules allow read/write access.</span></div>';
+                    chatStatusText.innerText = "● DB Error";
+                    chatStatusText.style.color = "var(--tv-accent)";
+                });
+            }
+
+            function renderMessages(messages) {
+                if (messages.length === 0) {
+                    chatMessagesEl.innerHTML = '<div style="opacity: 0.5; text-align: center; margin: auto;">No active requests yet. Be the first!</div>';
+                    return;
+                }
+
+                chatMessagesEl.innerHTML = '';
+                messages.forEach(msg => {
+                    const isSelf = currentUser && msg.userId === currentUser.uid;
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `chat-message ${isSelf ? 'self' : 'other'}`;
+                    
+                    if (msg.name) {
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'chat-sender-name';
+                        nameDiv.textContent = isSelf ? 'You' : msg.name;
+                        wrapper.appendChild(nameDiv);
+                    }
+
+                    const bubble = document.createElement('div');
+                    bubble.className = 'chat-bubble';
+                    bubble.textContent = msg.text; 
+
+                    const metaDiv = document.createElement('div');
+                    metaDiv.className = 'chat-meta';
+
+                    const timeSpan = document.createElement('span');
+                    const date = new Date(msg.timestamp);
+                    timeSpan.textContent = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                    metaDiv.appendChild(timeSpan);
+
+                    if (isAdmin) {
+                        const delBtn = document.createElement('span');
+                        delBtn.textContent = '🗑️';
+                        delBtn.style.cursor = 'pointer';
+                        delBtn.title = "Delete Request";
+                        delBtn.onclick = async () => {
+                            if(confirm("Delete this request?")) {
+                                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'requests', msg.id)); } 
+                                catch(e) { alert("Failed to delete message."); }
+                            }
+                        };
+                        metaDiv.appendChild(delBtn);
+                    }
+
+                    wrapper.appendChild(bubble);
+                    wrapper.appendChild(metaDiv);
+                    chatMessagesEl.appendChild(wrapper);
+                });
+                
+                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+            }
+
+            async function handleSendMessage() {
+                const text = chatInput.value.trim();
+                const name = chatName.value.trim();
+                
+                if (name.length < 2) {
+                    chatName.style.borderColor = 'var(--tv-accent)';
+                    chatName.value = '';
+                    chatName.placeholder = 'Name required!';
+                    alert("Please enter a display name to send a request.");
+                    chatName.focus();
+                    return;
+                } else {
+                    chatName.style.borderColor = 'var(--tv-border)';
+                    localStorage.setItem('rhythmChatName', name);
+                }
+
+                if (!text || !currentUser) return;
+                
+                chatInput.value = ''; 
+                
+                try {
+                    const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'requests');
+                    await addDoc(messagesRef, {
+                        text: text, name: name, timestamp: Date.now(), userId: currentUser.uid
+                    });
+                } catch (error) {
+                    alert("Could not send request. Please try again.");
+                }
+            }
+
+            sendBtn.addEventListener('click', handleSendMessage);
+            chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSendMessage(); });
+
+            chatName.value = localStorage.getItem('rhythmChatName') || '';
+
+            initAuth();
+        }
+    </script>
 </body>
 </html>
