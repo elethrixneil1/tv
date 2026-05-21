@@ -41,7 +41,7 @@
         body {
             font-family: 'Roboto', sans-serif;
             background: var(--tv-bg);
-            background-attachment: fixed; /* Keeps the gradient smooth when scrolling */
+            background-attachment: fixed; /* Pinapanatiling maayos ang gradient kapag nag-scroll */
             color: var(--tv-text);
             min-height: 100vh;
             display: flex;
@@ -170,7 +170,7 @@
             padding: 10px 20px; border-radius: 8px; z-index: 10; 
         }
         .tv-player-section:fullscreen .controls-left,
-        .tv-player-section:-webkit-full-screen .controls-left { display: flex; } /* Keep controls visible */
+        .tv-player-section:-webkit-full-screen .controls-left { display: flex; }
         
         .tv-player-section:fullscreen .vu-meter-wrapper,
         .tv-player-section:-webkit-full-screen .vu-meter-wrapper,
@@ -239,7 +239,7 @@
             justify-content: center;
             align-items: center;
             gap: 25px;
-            background: #25262a; /* Matches reference image */
+            background: #25262a; /* Kapareho ng nasa larawan */
             padding: 15px 30px;
             border-radius: 8px;
             border: 1px solid var(--tv-border);
@@ -268,7 +268,7 @@
             top: 15px;
         }
 
-        /* Red warning zone on the right of the dial */
+        /* Pulang babala sa kanan ng metro */
         .meter-scale::after {
             content: '';
             position: absolute;
@@ -281,7 +281,7 @@
             border-radius: 0 50px 0 0;
         }
 
-        /* Tick marks for the meter */
+        /* Guhit-guhit para sa metro */
         .meter-scale::before {
             content: '';
             position: absolute;
@@ -299,10 +299,10 @@
             height: 60px;
             background: #e74c3c;
             position: absolute;
-            bottom: -5px; /* Pivot point below the visible area */
+            bottom: -5px;
             transform-origin: bottom center;
-            transform: rotate(-45deg); /* Rests at the far left */
-            transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1); /* Realistic analog bounce */
+            transform: rotate(-45deg);
+            transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1);
             z-index: 2;
             box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
             border-radius: 2px;
@@ -334,7 +334,7 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* LED Colors */
+        /* Kulay ng LED */
         .dot-pink.active { 
             background: #ff0055; 
             box-shadow: 0 0 10px #ff0055, 0 0 15px #ff0055; 
@@ -415,6 +415,7 @@
             .chat-sidebar { height: 500px; position: relative; top: 0; }
             .info-grid { grid-template-columns: 1fr; }
         }
+        
         @media (max-width: 768px) {
             header { padding: 10px 15px; flex-wrap: wrap; gap: 10px; }
             .clock-container { display: none; }
@@ -425,15 +426,21 @@
             .tv-player-section:-webkit-full-screen .controls-bar { flex-direction: row; }
             .tv-player-section:fullscreen .controls-bar { flex-direction: row; }
             
-            /* Better VU Meter handling on mobile */
+            /* INAYOS PARA SA MOBILE: Pinaliit nang tama ang mga sukat para mag-fit sa isang linya */
             .vu-meter-wrapper { 
-                flex-wrap: wrap; 
-                gap: 15px; 
-                padding: 15px; 
+                flex-wrap: nowrap; /* Pinapanatili sa iisang linya */
+                gap: 10px; 
+                padding: 12px 10px; 
+                justify-content: space-between;
             }
-            .analog-meter { width: 120px; height: 65px; }
-            .meter-scale { width: 90px; height: 45px; top: 10px; }
-            .needle { height: 50px; }
+            .analog-meter { width: 110px; height: 60px; border-width: 1px; }
+            .meter-scale { width: 80px; height: 40px; top: 12px; }
+            .meter-scale::after { width: 20px; height: 20px; border-width: 2px; }
+            .needle { height: 50px; bottom: -3px; width: 2px; }
+            .meter-pivot { width: 20px; height: 10px; border-radius: 10px 10px 0 0; }
+            
+            .led-dots { gap: 6px; }
+            .dot { width: 8px; height: 8px; }
         }
     </style>
 </head>
@@ -493,7 +500,6 @@
                         <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                     </button>
                     <div class="volume-container">
-                        <!-- Re-added missing volume icon -->
                         <svg id="volIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                             <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
@@ -523,7 +529,7 @@
                     <div class="meter-pivot"></div>
                 </div>
                 
-                <!-- LED Array (7 Dots matching the image) -->
+                <!-- LED Array -->
                 <div class="led-dots" id="ledContainer">
                     <span class="dot dot-pink"></span>
                     <span class="dot dot-cyan"></span>
@@ -653,12 +659,12 @@
         let twitchPlayer;
         let isStreamPlaying = false;
         let currentVolumeLevel = 1.0;
-        let previousVolumeLevel = 1.0; // Added for mute toggle state
+        let previousVolumeLevel = 1.0;
         let vuInterval;
         let smoothedLevelL = 0;
         let smoothedLevelR = 0;
 
-        // Realistic Simulated VU Meter Logic
+        // INAYOS NA AUDIO SIMULATION: Mas sumasabay na sa beat!
         function animateVUMeters() {
             if (!isStreamPlaying) {
                 needleL.style.transform = `rotate(-45deg)`;
@@ -669,28 +675,40 @@
                 return;
             }
 
-            // Simulate realistic audio peaks responding to volume setting
-            const targetL = (Math.random() * 0.7 + 0.1) * currentVolumeLevel;
-            const targetR = targetL + (Math.random() * 0.3 - 0.15); // Slight stereo separation
+            const now = Date.now();
+            
+            // Gumawa ng simulated "beat" gamit ang Math.sin para sa kumpas ng bass/kick drum
+            // Binabago-bago ang bilis (tempo) base sa oras para mukhang nagbabago ang kanta
+            const beatWave = Math.sin(now / 180); 
+            const beatPeak = Math.pow(beatWave, 4); // Pinapatalim ang peak para maging 'sipa'
+            
+            // Nagdadagdag ng kaunting random na galaw para sa boses o iba pang instrumento
+            const noise = Math.random() * 0.35;
 
-            // Easing/Smoothing for realistic analog needle bounce
-            smoothedLevelL += (targetL - smoothedLevelL) * 0.35;
-            smoothedLevelR += (targetR - smoothedLevelR) * 0.35;
+            // Pinagsamang 'beat' at 'noise' para magmukhang totoong musika
+            const rawAudioSim = Math.min(1, (beatPeak * 0.65) + noise + 0.1);
 
-            // Clamp values
+            const targetL = rawAudioSim * currentVolumeLevel;
+            const targetR = targetL + (Math.random() * 0.2 - 0.1); // Stereo effect para magkaiba ng unti ang left/right
+
+            // Easing/Smoothing para mas makatotohanan ang pagtalbog ng karayom
+            smoothedLevelL += (targetL - smoothedLevelL) * 0.45;
+            smoothedLevelR += (targetR - smoothedLevelR) * 0.45;
+
+            // Limitahan mula 0 hanggang 1
             const valL = Math.max(0, Math.min(1, smoothedLevelL));
             const valR = Math.max(0, Math.min(1, smoothedLevelR));
 
-            // Map values (0 to 1) to Angles (-45deg to +45deg)
+            // I-convert ang value (0 to 1) papunta sa anggulo ng karayom (-45deg to +45deg)
             const angleL = -45 + (valL * 90);
             const angleR = -45 + (valR * 90);
 
             needleL.style.transform = `rotate(${angleL}deg)`;
             needleR.style.transform = `rotate(${angleR}deg)`;
 
-            // Update LEDs based on average intensity
+            // Pailawin ang mga LED base sa lakas ng simulation
             const avgVal = (valL + valR) / 2;
-            const activeDots = Math.floor(avgVal * dots.length * 1.3); // Multiplier makes it light up easier
+            const activeDots = Math.floor(avgVal * dots.length * 1.5); 
             
             dots.forEach((dot, index) => {
                 if (index < activeDots) {
@@ -727,20 +745,20 @@
                 container.classList.add('playing'); statusText.innerText = "Playing Live";
                 noSignalOverlay.classList.remove('active');
                 
-                // Start VU Meter
+                // Simulan ang VU Meter Animation
                 isStreamPlaying = true;
                 if(vuInterval) clearInterval(vuInterval);
-                vuInterval = setInterval(animateVUMeters, 80); // Updates ~12 times a second
+                vuInterval = setInterval(animateVUMeters, 50); // In-update sa 50ms para mas mabilis at smooth ang galaw (20 FPS)
             });
 
             twitchPlayer.addEventListener(Twitch.Player.PAUSE, () => {
                 playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
                 container.classList.remove('playing'); statusText.innerText = "Paused";
                 
-                // Stop VU Meter
+                // Itigil ang VU Meter
                 isStreamPlaying = false;
                 if(vuInterval) clearInterval(vuInterval);
-                animateVUMeters(); // Reset needles
+                animateVUMeters(); 
             });
             
             twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => {
@@ -748,10 +766,10 @@
                 playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
                 noSignalOverlay.classList.add('active');
                 
-                // Stop VU Meter
+                // Itigil ang VU Meter
                 isStreamPlaying = false;
                 if(vuInterval) clearInterval(vuInterval);
-                animateVUMeters(); // Reset needles
+                animateVUMeters(); 
             });
         }
         
@@ -761,7 +779,6 @@
             volumeControl.value = vol;
         }
 
-        // Added Mute Toggle Functionality
         volIcon.addEventListener('click', () => {
             if (currentVolumeLevel > 0) {
                 previousVolumeLevel = currentVolumeLevel;
@@ -778,7 +795,7 @@
 
         volumeControl.addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
-            currentVolumeLevel = vol; // Store level so VU meter knows the max volume
+            currentVolumeLevel = vol; 
             if (twitchPlayer) {
                 twitchPlayer.setMuted(vol === 0);
                 twitchPlayer.setVolume(vol);
@@ -846,7 +863,6 @@
         // --- CLOCKS ---
         function updateClocks() {
             const now = new Date();
-            // Fixed potential syntax quirk by replacing [] with undefined
             document.getElementById('localTime').innerText = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             document.getElementById('phTime').innerText = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
